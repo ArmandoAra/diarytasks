@@ -36,8 +36,8 @@ export default function RootLayout() {
 
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(note)" options={{ headerShown: true }} />
-          <Stack.Screen name="(task)" options={{ headerShown: true }} />
+          <Stack.Screen name="(note)" options={{ headerShown: true, headerTitle: 'Create Note', headerTitleAlign: 'center' }} />
+          <Stack.Screen name="(task)" options={{ headerShown: true, headerTitle: 'Create Task', headerTitleAlign: 'center' }} />
           <Stack.Screen name="+not-found" />
         </Stack>
 
