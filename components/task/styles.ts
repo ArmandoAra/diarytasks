@@ -18,7 +18,7 @@ export const styles = StyleSheet.create({
         fontWeight: "bold",
         color: "#fff",
     },
-    importanceLevel: {
+    priorityLevel: {
         backgroundColor: "#f87171",
         fontSize: 12,
         textAlign: "center",

@@ -7,7 +7,7 @@ import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-export default function CreateTaskLayout() {
+export default function CreateNoteLayout() {
   const colorScheme = useColorScheme();
 
   return (

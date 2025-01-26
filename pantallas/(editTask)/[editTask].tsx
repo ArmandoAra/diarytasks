@@ -9,22 +9,23 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { router, useNavigation } from 'expo-router';
+import { router, Stack, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
 import CheckBox from '@react-native-community/checkbox';
 
 // Styles
-import { styles } from './styles';
+import styles from './styles';
 
 // Date Picker
 import { Button as PickerButton } from 'react-native-paper';
 import { DatePickerModal } from 'react-native-paper-dates';
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import { en, registerTranslation } from 'react-native-paper-dates'
 registerTranslation('en', en)
 
 
-const CreateTask = () => {
+const EditTask = () => {
+  const { id } = useLocalSearchParams()
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   // const [status, setStatus] = useState(false);  false = ToDo, true = Completed
@@ -59,8 +60,11 @@ const CreateTask = () => {
 
   return (
     <ScrollView style={styles.container}>
+
       <View style={{ flex: 12 }}>
-        <Text style={styles.label}>Title</Text>
+
+
+        <Text style={styles.label}>Title Tarea {id}</Text>
         <TextInput
           style={styles.input}
           value={title}
@@ -74,7 +78,9 @@ const CreateTask = () => {
           value={description}
           onChangeText={setDescription}
           placeholder="Enter task description"
+          numberOfLines={5}
           multiline
+          textAlignVertical='top'
         />
         {/* Importance level */}
         <Text style={styles.label}>Importance Level</Text>
@@ -132,4 +138,4 @@ const CreateTask = () => {
 
 
 
-export default CreateTask;
+export default EditTask;

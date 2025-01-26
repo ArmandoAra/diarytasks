@@ -3,69 +3,122 @@ import {
     View,
     Text,
     TouchableOpacity,
+    TouchableWithoutFeedback,
+    Pressable,
 } from 'react-native';
 // Styles
 import { styles } from './styles';
 
 // Interfaces
-import { Task as TaskProps } from '../../interfaces/TasksInterfaces';
+import { CreateTaskProps } from '../../interfaces/TasksInterfaces';
+import { Link } from 'expo-router';
 
-var importanceHighColor = "#590000";
-var importanceMediumColor = "#767600";
-var importanceLowColor = "#006400";
+import { deleteTaskById, getAllTasks, getTasksByDate } from '@/db/taskDb';
+import { useGlobalContext } from '@/context/GlobalProvider';
+
+var priorityHighColor = "#590000";
+var priorityMediumColor = "#767600";
+var priorityLowColor = "#006400";
 
 
 
 const Task = ({
+    id,
     title,
     description,
-    importanceLevel,
-    onTaskEdit,
-    onTaskDelete,
-}: TaskProps) => {
-    const [importanceColor, setImportanceColor] = useState<string>(importanceLowColor);
+    priority,
+    date,
+}: CreateTaskProps) => {
+    const [priorityColor, setpriorityColor] = useState<string>(priorityLowColor);
+    const { day, setTasks } = useGlobalContext();
+    const [tasksError, setTasksError] = useState<string>("");
 
+
+    // Logica para el doble  tap de la tarea
+    const [lastTap, setLastTap] = useState(0);
+    const DOUBLE_TAP_DELAY = 300; // Tiempo en milisegundos para considerar un doble tap
+    const handleDoubleTap = () => {
+        const now = Date.now();
+        if (now - lastTap < DOUBLE_TAP_DELAY) {
+            // Acción a realizar en doble tap
+            console.log(date)
+            alert('Doble Tap Detectado');
+        }
+        setLastTap(now);
+    };
+
+
+    // Implementado el color de priority
     useEffect(() => {
-        switch (importanceLevel) {
+        switch (priority) {
             case "High":
-                setImportanceColor(importanceHighColor);
+                setpriorityColor(priorityHighColor);
                 break;
             case "Medium":
-                setImportanceColor(importanceMediumColor);
+                setpriorityColor(priorityMediumColor);
                 break;
             case "Low":
-                setImportanceColor(importanceLowColor);
+                setpriorityColor(priorityLowColor);
                 break;
         }
     }, []);
 
+    const handleTaskDelete = async () => {
+        const deleteTask = async () => {
+            const response = await deleteTaskById(id);
+            if (response.success && response.data) {
+                const response = await getAllTasks();
+                if (response.success && response.data) {
+                    setAllTasks(response.data);
+                }
+            };
+
+        }
+
+        const fetchTasks = async () => {
+            const response = await getTasksByDate(day);
+            if (response.success && response.data) {
+                setTasks(response.data);
+            } else {
+                setTasksError(response.message || 'An error occurred while fetching tasks.');
+            }
+        };
+
+        deleteTask();
+        fetchTasks();
+        console.log(`Task ${id} Eliminada correctamente`)
+    }
+
     return (
-        <View style={styles.taskContainer}>
+        <Pressable style={styles.taskContainer} onPress={handleDoubleTap}>
             <View style={styles.taskHeader}>
                 <Text style={styles.title}>{title}</Text>
-
-                {/* TODO: Debe ser dinamico el color del fondo del texto según su nivel de importancia */}
-                <Text style={{ ...styles.importanceLevel, backgroundColor: importanceColor }}>{importanceLevel}</Text>
-
+                <Text style={{ ...styles.priorityLevel, backgroundColor: priorityColor }}>{priority}</Text>
             </View>
             <Text style={styles.description}>{description}</Text>
             <View style={styles.actionContainer}>
                 <Text style={styles.actionTextHint}>Double Tap to Complete</Text>
-                {/*TODO: Cuando se haga clic en la tarea, se abrirá una ventana para editarla. tomando el (Id) */}
-                <TouchableOpacity onPress={onTaskEdit}>
-                    {/*TODO: Reemplazar con el icono de edición pro un lapiz */}
-                    <Text style={styles.actionText}>✏️</Text>
-                </TouchableOpacity>
 
-                {/*TODO: Cuando se haga clic en la tarea, se eliminará la tarea. tomando el (Id) */}
-                <TouchableOpacity onPress={onTaskDelete}>
-                    {/*TODO: Reemplazar con el icono de eliminación pro un cesto de basura */}
+                <View>
+                    <Link
+                        href={{
+                            pathname: '/editTask/[id]',
+                            params: { id }
+                        }}  >
+                        ✏️
+                    </Link>
+                </View>
+                <TouchableOpacity onPress={handleTaskDelete}>
                     <Text style={styles.actionText}>🗑️</Text>
                 </TouchableOpacity>
 
             </View>
-        </View>
+        </Pressable>
     );
 };
 
 export default Task;
+function setAllTasks(data: any) {
+    throw new Error('Function not implemented.');
+}
+

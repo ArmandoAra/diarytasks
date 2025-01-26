@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
         justifyContent: 'space-between',
@@ -28,7 +28,7 @@ export const styles = StyleSheet.create({
         gap: 10, // Puedes usar margenes si tu versión no soporta gap
     },
     date: {
-        fontSize: 16,
+        fontSize: 20,
     },
     selectDayButton: {
         backgroundColor: '#63b3ed', // Azul claro
@@ -41,3 +41,5 @@ export const styles = StyleSheet.create({
         textAlign: 'center',
     },
 });
+
+export default styles;

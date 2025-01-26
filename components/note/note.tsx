@@ -1,50 +1,43 @@
-import React from 'react'
+import React, { Dispatch, SetStateAction } from 'react'
 import { View, Text, TouchableOpacity, GestureResponderEvent } from 'react-native'
 
 //Interface
 export interface NoteProps {
     title: string;
-    description: string[];
-    isImportant?: boolean;
-    toggleNoteImportance?: (event: GestureResponderEvent) => void;
+    message: string;
+    isFavorite: boolean;
+    setIsFavorite: Dispatch<SetStateAction<boolean>>;
     onNoteEdit?: (event: GestureResponderEvent) => void;
     onNoteDelete?: (event: GestureResponderEvent) => void;
 }
 
 // Styles
 import { styles } from './styles'
+import Favorite from '../favoriteToggle/favToggle';
 
 
-
-const Note = ({ title, description, isImportant, toggleNoteImportance, onNoteEdit, onNoteDelete }: NoteProps) => {
+const Note = ({ title, message, isFavorite, setIsFavorite, onNoteEdit, onNoteDelete }: NoteProps) => {
 
     return (
         <View style={styles.note}>
             <View style={styles.noteHeader}>
                 <Text style={styles.noteTitle}>{title}</Text>
-
-                <TouchableOpacity onPress={toggleNoteImportance} >
-                    <Text style={styles.noteStar}>{isImportant ? '⭐' : '🌟'}</Text>
-                </TouchableOpacity>
-
+                <Favorite isFavorite={isFavorite} setIsFavorite={setIsFavorite} />
             </View>
             <View>
-                {description?.map((text: string, index: number) => {
-                    return (<Text style={styles.noteText} key={index}>{text}</Text>)
-                })}
-            </View>
-            <View style={styles.actions}>
-
-                <TouchableOpacity onPress={onNoteEdit}>
-                    <Text style={styles.actionText}>✏️</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity onPress={onNoteDelete}>
-                    <Text style={styles.actionText}>🗑️</Text>
-                </TouchableOpacity>
+                <Text style={styles.noteText} >{message}</Text>
+                <View style={styles.actions}>
+                    <TouchableOpacity onPress={onNoteEdit}>
+                        <Text style={styles.actionText}>✏️</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={onNoteDelete}>
+                        <Text style={styles.actionText}>🗑️</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
         </View>
     )
 }
 
-export default Note
+export default Note;
+

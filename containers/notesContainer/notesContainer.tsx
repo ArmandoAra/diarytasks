@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { Link, router } from 'expo-router';
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
@@ -10,16 +10,22 @@ import { styles } from './styles';
 
 
 const NotesContainer = () => {
+    const [isFavorite, setIsFavorite] = React.useState(false);
+
+
+    //TODO: Crear use effect para el favorito que cuando cambie entonces guarde el cambio permanente
 
     return (
         <View style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.headerText}>Daily Notes</Text>
-                <TouchableOpacity style={styles.addButton} onPress={() => router.push("./createNote")}
+                <Link style={styles.addButton}
+                    href={'/createNote'}
+                    asChild
                     accessibilityLabel="Create New Note">
                     <Text style={styles.addButtonText}>+</Text>
-                </TouchableOpacity>
+                </Link>
             </View>
 
             {/* Contenedor de Notas */}
@@ -27,15 +33,12 @@ const NotesContainer = () => {
                 {/* Nota 1 title="Task 1"  text="Complete the project by Friday." */}
                 <Note
                     title="Task 2"
-                    description={["Finish the report by Monday.", "Review the feedback from your team.", "Submit the final project.", "Review the project plan."]}
+                    message="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+                    isFavorite={isFavorite}
+                    setIsFavorite={setIsFavorite}
                     onNoteEdit={() => console.log("To Note Edit")}
                     onNoteDelete={() => console.log("To Note Delete")}
-                    toggleNoteImportance={() => console.log("To Toggle Importance")}
                 />
-
-
-
-
 
             </View>
         </View>

@@ -1,11 +1,20 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Button } from 'react-native';
+import React, { forwardRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Button, Pressable } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import Task from '../../components/task/task'; // Ajusta la ruta según tu proyecto
-import { router, useNavigation } from 'expo-router';
+import { Link, router } from 'expo-router';
+
+import navigation from '@react-navigation/native'
+import { setParams } from 'expo-router/build/global-state/routing';
+import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import { getTasksByDate } from '@/db/taskDb';
+
+
 
 const TasksContainer = () => {
-    const [sortOption, setSortOption] = React.useState("Today");
+    const [sortOption, setSortOption] = React.useState("all");
+    const { tasks } = useGlobalContext();
 
     return (
         <View style={styles.container_Tasks}>
@@ -18,20 +27,20 @@ const TasksContainer = () => {
                     mode="dropdown"
                     onValueChange={(itemValue) => setSortOption(itemValue)}
                 >
-                    <Picker.Item label="Today" value="Today" />
-                    <Picker.Item label="Importants Today" value="Importants" />
-                    <Picker.Item label="This Week" value="This Week" />
-                    <Picker.Item label="From Today One Month" value="This Month" />
+                    <Picker.Item label="All Tasks" value="all" />
+                    <Picker.Item label="High" value="high" />
+                    <Picker.Item label="Medium" value="medium" />
+                    <Picker.Item label="Low" value="low" />
                 </Picker>
 
                 {/* Botón para crear nueva tarea */}
-                <TouchableOpacity
+                <Pressable
                     style={styles.newTaskButton_Tasks}
-                    onPress={() => router.push("./createTask")}
+                    onPress={() => router.push('/createTask')}
                     accessibilityLabel="Create New Task">
                     {/* Irir a la pantalla para crear nueva tarea  */}
                     <Text style={styles.newTaskButtonText_Tasks}>+</Text>
-                </TouchableOpacity>
+                </Pressable>
             </View>
 
             {/* Filtros de tareas */}
@@ -46,25 +55,29 @@ const TasksContainer = () => {
 
             {/* Lista de tareas */}
             <View style={styles.tasksList_Tasks}>
-                <Task
-                    title="Task 1"
-                    description="This is a test description of the first task of the list just testing the components and the containers"
-                    importanceLevel="High"
-                />
-                <Task
-                    title="Task 2"
-                    description="Another test description for the task container layout"
-                    importanceLevel="Medium"
-                />
-                <Task
-                    title="Task 3"
-                    description="Adding a third example task to test the design"
-                    importanceLevel="Low"
-                />
+                {tasks.map(task => (
+                    <Task
+                        key={task.id}
+                        id={task.id}
+                        title={task.title}
+                        description={task.description}
+                        priority={task.priority}
+                        status={task.status}
+                        date={task.date || ""}
+                    />
+                ))}
             </View>
         </View>
     );
 };
+
+{/* <Task
+                    id="#23"
+                    title="Task 1"
+                    description="This is a test description of the first task of the list just testing the components and the containers"
+                    importanceLevel="High"
+                    status='ToDo'
+                /> */}
 
 const styles = StyleSheet.create({
     container_Tasks: {

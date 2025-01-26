@@ -43,7 +43,19 @@ export default function RootLayout() {
 
             <Stack>
               <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="(auth)" options={{
+                headerShown: false,
+                headerTitle: "",
+                headerShadowVisible: false,
+                headerStyle: { backgroundColor: "#003b35" },
+              }} />
               <Stack.Screen name="(home)" options={{ headerShown: false }} />
+
+              <Stack.Screen name="(createTask)" options={{ headerShown: true, headerTitle: 'Create Task', headerTitleAlign: 'center' }} />
+              <Stack.Screen name="(createNote)" options={{ headerShown: true, headerTitle: 'Create Note', headerTitleAlign: 'center' }} />
+              <Stack.Screen name="(editTask)" options={{ headerShown: true, headerTitle: 'Edit Task', headerTitleAlign: 'center' }} />
+              <Stack.Screen name="(editNote)" options={{ headerShown: true, headerTitle: 'Edit Note', headerTitleAlign: 'center' }} />
+
               <Stack.Screen name="+not-found" />
             </Stack >
 
