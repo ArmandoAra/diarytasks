@@ -5,7 +5,7 @@ import * as SQLite from 'expo-sqlite';
 
 
 // Interfaces
-import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
+import { CreateTaskProps, Status } from '@/interfaces/TasksInterfaces';
 
 
 // createTaskByTemplateId()
@@ -146,6 +146,37 @@ export async function getAllTasks(): Promise<{ success: boolean; data?: CreateTa
     } catch (error) {
         console.error('Error retrieving tasks:', error);
         return { success: false, message: 'Error retrieving tasks', error };
+    }
+}
+
+export async function updateTaskStatus(id: string, status: Status) {
+    const db = await SQLite.openDatabaseAsync('diaryTasks.db');
+
+    const newStatus: Status = (status == "Completed") ? "ToDo" : "Completed";
+
+    try {
+        // Actualizar la tarea en la base de datos
+        const result = await db.runAsync(
+            `UPDATE Task SET
+                 status = ? 
+             WHERE id = ?`,
+            [
+                newStatus,
+                id
+            ]
+        );
+
+        // Verificar si la tarea fue actualizada
+        if (result.changes > 0) {
+            console.log('Status updated successfully');
+            return { success: true, message: 'Status updated successfully' };
+        } else {
+            console.log('No task found with the specified ID');
+            return { success: false, message: 'No task found with the specified ID' };
+        }
+    } catch (error) {
+        console.log('Error updating task:', error);
+        return { success: false, message: 'Error updating task', error };
     }
 }
 

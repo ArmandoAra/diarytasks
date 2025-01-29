@@ -3,7 +3,6 @@ import {
     View,
     Text,
     TouchableOpacity,
-    TouchableWithoutFeedback,
     Pressable,
 } from 'react-native';
 // Styles
@@ -13,14 +12,13 @@ import { styles } from './styles';
 import { CreateTaskProps } from '../../interfaces/TasksInterfaces';
 import { Link } from 'expo-router';
 
-import { deleteTaskById, getAllTasks, getTasksByDate } from '@/db/taskDb';
+import { deleteTaskById, getAllTasks, getTasksByDate, updateTaskStatus } from '@/db/taskDb';
 import { useGlobalContext } from '@/context/GlobalProvider';
+import { handleUrlParams } from 'expo-router/build/fork/getStateFromPath-forks';
 
 var priorityHighColor = "#590000";
 var priorityMediumColor = "#767600";
 var priorityLowColor = "#006400";
-
-
 
 const Task = ({
     id,
@@ -28,21 +26,29 @@ const Task = ({
     description,
     priority,
     date,
+    status
 }: CreateTaskProps) => {
     const [priorityColor, setpriorityColor] = useState<string>(priorityLowColor);
-    const { day, setTasks } = useGlobalContext();
+    const { day, setTasks, setLoading } = useGlobalContext();
     const [tasksError, setTasksError] = useState<string>("");
 
 
     // Logica para el doble  tap de la tarea
     const [lastTap, setLastTap] = useState(0);
     const DOUBLE_TAP_DELAY = 300; // Tiempo en milisegundos para considerar un doble tap
-    const handleDoubleTap = () => {
+    const handleDoubleTap = async () => {
         const now = Date.now();
         if (now - lastTap < DOUBLE_TAP_DELAY) {
             // Acción a realizar en doble tap
-            console.log(date)
-            alert('Doble Tap Detectado');
+            console.log(status);
+            setLoading(true);
+            const response = await updateTaskStatus(id, status);
+            if (response.success) {
+                setLoading(false)
+            } else {
+                alert('Something went wrong updating the task status');
+                setLoading(false)
+            }
         }
         setLastTap(now);
     };
@@ -68,10 +74,9 @@ const Task = ({
             const response = await deleteTaskById(id);
             if (response.success && response.data) {
                 const response = await getAllTasks();
-                if (response.success && response.data) {
-                    setAllTasks(response.data);
-                }
-            };
+            } else {
+                return response.error
+            }
 
         }
 
@@ -91,6 +96,7 @@ const Task = ({
 
     return (
         <Pressable style={styles.taskContainer} onPress={handleDoubleTap}>
+            <Text style={{ color: "white" }}>{status}</Text>
             <View style={styles.taskHeader}>
                 <Text style={styles.title}>{title}</Text>
                 <Text style={{ ...styles.priorityLevel, backgroundColor: priorityColor }}>{priority}</Text>
@@ -104,7 +110,8 @@ const Task = ({
                         href={{
                             pathname: '/editTask/[id]',
                             params: { id }
-                        }}  >
+                        }}
+                    >
                         ✏️
                     </Link>
                 </View>
@@ -118,7 +125,5 @@ const Task = ({
 };
 
 export default Task;
-function setAllTasks(data: any) {
-    throw new Error('Function not implemented.');
-}
+
 

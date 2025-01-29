@@ -1,7 +1,8 @@
 
 export interface CreateNoteProps {
+    id: string;
     title: string;
     message: string;
-    isFavorite: 0 | 1;
+    isFavorite: number;
     date: string;
 }

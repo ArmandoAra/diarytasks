@@ -95,7 +95,7 @@ const CreateTask = () => {
           textAlignVertical='top'
         />
         {/* Importance level */}
-        <Text style={styles.label}>Importance Level</Text>
+        <Text style={styles.label}>Priority</Text>
         <View style={{ borderRadius: 10, borderWidth: 1, backgroundColor: '#a8232300', overflow: 'hidden' }}>
           <Picker
             selectedValue={data.priority}

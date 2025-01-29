@@ -1,3 +1,5 @@
+import { CreateNoteProps } from "@/interfaces/NotesInterfaces";
+import { CreateTaskProps } from "@/interfaces/TasksInterfaces";
 
 // Generador de Id
 export const generateId = () => `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -53,4 +55,43 @@ export function formatDateToString(dateString: string): string {
 
     // Construir la cadena de salida
     return `Day selected is ${monthName} ${day}${daySuffix(day)}, ${year}`;
+}
+
+// recibe la fecha como string, la convierte en DATE , Le suma un dia y devuelve el mismo formato de string.
+export const getBackDay = (dateString: string): string => {
+    const [day, month, year] = dateString.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+
+    date.setDate(date.getDate() - 1); // Resta un dia
+
+    // Formatear de nuevo a "DD-MM-YYYY"
+    const nextDay = String(date.getDate()).padStart(2, "0");
+    const nextMonth = String(date.getMonth() + 1).padStart(2, "0");
+    const nextYear = date.getFullYear();
+
+    return `${nextDay}-${nextMonth}-${nextYear}`;
+};
+export const getNextDay = (dateString: string): string => {
+    const [day, month, year] = dateString.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+
+    date.setDate(date.getDate() + 1); // Sumar un día
+
+    // Formatear de nuevo a "DD-MM-YYYY"
+    const nextDay = String(date.getDate()).padStart(2, "0");
+    const nextMonth = String(date.getMonth() + 1).padStart(2, "0");
+    const nextYear = date.getFullYear();
+
+    return `${nextDay}-${nextMonth}-${nextYear}`;
+};
+
+// This two function i made to find the task or note that i want to edit and do not search again into db ([id].tsx)
+export function searchTaskById(id: string | string[], data: CreateTaskProps[]) {
+    const result = data.filter((task) => task.id == id);
+    return result;
+}
+
+export function searchNoteById(id: string | string[], data: CreateNoteProps[]) {
+    const result = data.filter((note) => note.id == id);
+    return result;
 }

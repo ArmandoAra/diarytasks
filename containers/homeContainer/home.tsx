@@ -1,12 +1,9 @@
 import TasksContainer from '../../containers/tasksContainer/tasks';
 import NotesContainer from '../../containers/notesContainer/notesContainer';
-import { View, Text, ScrollView, TouchableOpacity, Pressable } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Pressable, BackHandler, Alert } from 'react-native';
 
-// Date Picker
-import { Button as PickerButton } from 'react-native-paper';
-import { DatePickerModal } from 'react-native-paper-dates';
-import { en, registerTranslation } from 'react-native-paper-dates'
-registerTranslation('en', en)
+// Components
+import Header from '@/components/header/header';
 
 // Styles
 import styles from '../../styles/homeStyles';
@@ -20,35 +17,18 @@ import { getAllTasks, getTasksByDate } from '@/db/taskDb';
 import { formatDate, formatDateToString } from '@/Utils/helpFunctions';
 import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 import { getNotesByDate } from '@/db/noteDb';
+import { useNavigationState } from '@react-navigation/native';
 
 export default function Home() {
   const {
-    user,
     day,
-    tasks,
-    dayNotes,
-    setDay,
     setTasks,
+    loading,
     setDayNotes,
   } = useGlobalContext();
 
   const [tasksError, setTasksError] = useState<string>("");
   const [notesError, setNotesError] = useState<string>('');
-
-  // formatDate(new Date)
-
-  //Single Date Picker
-  const [date, setDate] = React.useState();
-  const [open, setOpen] = React.useState(false);
-
-  const onDismiss = React.useCallback(() => {
-    setOpen(false);
-  }, [setOpen]);
-
-  const onConfirm = React.useCallback((params: any) => {
-    setOpen(false);
-    setDay(formatDate(params.date));
-  }, []);
 
 
   // Obteniendo las tareas
@@ -74,35 +54,40 @@ export default function Home() {
 
     fetchNotesDay();
     fetchTasks();
-  }, [day])
+  }, [day, loading])
+
+
+  // // Probando el backHandler
+  // useEffect(() => {
+  //   // Función que se ejecutará cuando el usuario presione "Atrás"
+  //   const handleBackPress = () => {
+  //     console.log(currentRoute)
+  //     Alert.alert(
+  //       'Confirmación',
+  //       '¿Estás seguro que deseas salir?',
+  //       [
+  //         { text: 'Cancelar', style: 'cancel' },
+  //         { text: 'Salir', onPress: () => router.push('/') },
+  //       ],
+  //       { cancelable: true }
+  //     );
+  //     return true; // Evita que el gesto cierre la app automáticamente
+  //   };
+
+  //   // Agregar el listener al montar el componente
+  //   BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+
+  //   // Limpiar el listener al desmontar el componente
+  //   return () =>
+  //     BackHandler.removeEventListener('hardwareBackPress', handleBackPress);
+  // }, []);
 
 
   return (
 
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title} className='bg-orange-800'>Diary Tasks</Text>
-      <View style={styles.greetingContainer}>
-        <Text style={styles.greeting}>Hi {user},</Text>
-        <View style={styles.dateContainer}>
-          <Text style={styles.date}>{formatDateToString(day)}</Text>
-          {/* Botón Select Day */}
-          <View style={{ justifyContent: 'center', flex: 1, alignItems: 'center' }}>
-            <PickerButton onPress={() => setOpen(true)} uppercase={false} mode="outlined">
-              Select Day
-            </PickerButton>
-            <DatePickerModal
-              saveLabel='Go to'
-              locale="en"
-              mode="single"
-              visible={open}
-              onDismiss={onDismiss}
-              date={date}
-              onConfirm={onConfirm}
-            />
-          </View>
-        </View>
-      </View>
 
+      <Header />
       <TasksContainer />
       <NotesContainer />
 

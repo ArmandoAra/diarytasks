@@ -1,31 +1,38 @@
-import { StyleSheet, Text, Image, ActivityIndicator, Dimensions, ScrollView, View, TouchableOpacity } from 'react-native';
-import { Redirect, router } from 'expo-router';
+import { StyleSheet, Text, Image, ActivityIndicator, Dimensions, ScrollView, View, TouchableOpacity, Pressable } from 'react-native';
+import { Link, Redirect, router } from 'expo-router';
 
 import { useEffect, useState } from 'react';
 
 
 //DB
-import React from 'react';
-import { loadDatabase, getUser } from '@/db/db';
+import { createDatabaseStructure, loadDatabase } from '@/db/db';
+import { createUser, getUser } from '@/db/userDb';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function App() {
     const [dbLoaded, setDbLoaded] = useState<boolean>(false);
-    const { isLogged, setUser, setIsLogged, user } = useGlobalContext();
+    const { isLogged, setUser, setIsLogged, setLoading, user } = useGlobalContext();
+    const [testUser, setTestUser] = useState<Promise<void>>()
 
 
     useEffect(() => {
         loadDatabase()
-            .then(() => setDbLoaded(true))
+            .then(() => {
+                setDbLoaded(true);
+                // createDatabaseStructure();
+            })
             .catch((error) => console.log(error));
     }, []);
 
 
+    // useEffect(() => {
+    //     createUser("Luis", setUser, setIsLogged, setLoading)
+    //     console.log(testUser + "line 28 index")
+    // }, [])
+
     useEffect(() => {
-
         getUser(setUser, setIsLogged)
-
     }, [])
 
     if (!dbLoaded) {
@@ -41,7 +48,6 @@ export default function App() {
         <SafeAreaView style={{ flexDirection: 'column', backgroundColor: 'black', marginTop: 60 }} >
             <View>
                 <View>
-
                     <View style={{ flexDirection: 'column', }} >
                         <Text style={{ fontSize: 100, color: "white", paddingHorizontal: 20, marginTop: 60 }}>Diary</Text>
                         <Text style={{ fontSize: 100, color: "white", paddingHorizontal: 20, marginTop: -30 }}>Tasks</Text>
@@ -51,20 +57,16 @@ export default function App() {
                 </View>
 
             </View>
-            {!isLogged ?
-                <TouchableOpacity
+            <View>
+                <Link
                     style={{ height: 60, backgroundColor: '#0c4a6e', alignItems: 'center', justifyContent: 'center', width: '80%', borderRadius: 30, marginVertical: 30, marginHorizontal: '10%' }}
-                    onPress={() => router.push("./insertUserScreen")}
-                    accessibilityLabel="Navigate to insert user pages">
-                    <Text style={{ color: 'white', fontSize: 24 }}  >New User</Text>
-                </TouchableOpacity>
-                : <TouchableOpacity
-                    style={{ height: 60, backgroundColor: '#0c4a6e', alignItems: 'center', justifyContent: 'center', width: '80%', borderRadius: 30, marginVertical: 30, marginHorizontal: '10%' }}
-                    onPress={() => router.push("./home")}
-                    accessibilityLabel="Navigate to my notes">
-                    <Text style={{ color: 'white', fontSize: 24 }}  >Go to Notes</Text>
-                </TouchableOpacity>
-            }
+                    href="/home" asChild
+                >
+                    <Pressable>
+                        <Text style={{ color: 'white', fontSize: 24 }}>Home</Text>
+                    </Pressable>
+                </Link>
+            </View>
         </SafeAreaView>
     );
 }

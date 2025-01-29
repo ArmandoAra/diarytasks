@@ -11,21 +11,29 @@ import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
 // createTaskByTemplateId()
 
 
-export async function createNote(data: CreateNoteProps) {
+export async function createNote(note: CreateNoteProps) {
     const db = await SQLite.openDatabaseAsync('diaryTasks.db');
 
     const newNote = {
-        title: data.title,
-        message: data.message,
-        isFavorite: data.isFavorite,
-        date: data.date,
+        title: note.title,
+        message: note.message,
+        isFavorite: note.isFavorite,
+        date: note.date,
     }
     // INSERT INTO Note (title, message, isFavorite, date) VALUES ('Nueva Nota', 'Hola a todos', 0, '21/3/2025');
     try {
-        await db.runAsync(
+        const result = await db.runAsync(
             'INSERT INTO Note (title, message, isFavorite, date) VALUES (?, ?, ?, ?)',
             [newNote.title, newNote.message, newNote.isFavorite, newNote.date]
         );
+        // Verificar si la tarea fue actualizada
+        if (result.changes > 0) {
+            console.log('Note created successfully');
+            return { success: true, message: 'Note created successfully' };
+        } else {
+            console.log('Error inserting Note')
+            return { success: false, message: 'Error inserting Note' };
+        }
 
     } catch (error) {
         console.log('Error inserting Note', error)
@@ -53,15 +61,13 @@ export async function updateNoteById(id: string, data: CreateNoteProps) {
                  title = ?, 
                  message = ?, 
                  isFavorite = ?, 
-                 dates = ?, 
-                 updatedAt = ?
+                 date = ?
              WHERE id = ?`,
             [
                 updatedNote.title,
                 updatedNote.message,
                 updatedNote.isFavorite,
                 updatedNote.date,
-                updatedAt,
                 id,
             ]
         );
@@ -80,20 +86,19 @@ export async function updateNoteById(id: string, data: CreateNoteProps) {
     }
 }
 
-export async function getNotesByDate(date: string) {
+export async function getNotesByDate(date: string): Promise<{ success: boolean; data?: CreateNoteProps[]; message?: string; error?: any }> {
     const db = await SQLite.openDatabaseAsync('diaryTasks.db');
-
     try {
         // Consultar las tareas para una fecha específica
-        const result = await db.runAsync(
-            `SELECT * FROM Note WHERE date = ? ORDER BY createdAt ASC`,
+        const result = await db.getAllAsync(
+            `SELECT * FROM Note WHERE date = ?`,
             [date]
         );
 
-        // Verificar si se encontraron tareas
-        if (result.changes > 0) {
+        // Verificar si se encontraron notas
+        if (result && Array.isArray(result)) {
             console.log('Notes retrieved successfully');
-            return { success: true, Notes: result };
+            return { success: true, data: result as CreateNoteProps[] };
         } else {
             console.log('No Notes found for the specified date');
             return { success: false, message: 'No Notes found for the specified date' };
@@ -125,5 +130,34 @@ export async function deleteNoteById(id: string) {
     } catch (error) {
         console.log('Error deleting Note:', error);
         return { success: false, message: 'Error deleting Note', error };
+    }
+}
+
+export async function updateFavorite(id: string, isFavorite: number) {
+    const db = await SQLite.openDatabaseAsync('diaryTasks.db');
+
+    try {
+        // Actualizar la tarea en la base de datos
+        const result = await db.runAsync(
+            `UPDATE Note SET
+                 isFavorite = ? 
+             WHERE id = ?`,
+            [
+                isFavorite,
+                id
+            ]
+        );
+
+        // Verificar si la tarea fue actualizada
+        if (result.changes > 0) {
+            console.log('Note updated successfully');
+            return { success: true, message: 'Note updated successfully' };
+        } else {
+            console.log('No note found with the specified ID');
+            return { success: false, message: 'No note found with the specified ID' };
+        }
+    } catch (error) {
+        console.log('Error updating note:', error);
+        return { success: false, message: 'Error updating note', error };
     }
 }

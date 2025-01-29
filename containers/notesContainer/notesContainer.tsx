@@ -1,19 +1,33 @@
-import { Link, router } from 'expo-router';
+import { Link } from 'expo-router';
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 
 // Components
 import Note from '../../components/note/note';
 
 //Styles
 import { styles } from './styles';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import { deleteNoteById, getNotesByDate } from '@/db/noteDb';
 
 
 const NotesContainer = () => {
-    const [isFavorite, setIsFavorite] = React.useState(false);
+    const { day, dayNotes, setDayNotes } = useGlobalContext();
+    // const [isFavorite, setIsFavorite] = React.useState(false);
+    const [notesError, setNotesError] = React.useState<string>('');
 
-
-    //TODO: Crear use effect para el favorito que cuando cambie entonces guarde el cambio permanente
+    const handleNoteDelete = (id: string) => {
+        deleteNoteById(id)
+        const fetchNotesDay = async () => {
+            const response = await getNotesByDate(day);
+            if (response.success && response.data) {
+                setDayNotes(response.data);
+            } else {
+                setNotesError(response.message || 'An error occurred while fetching notes.');
+            }
+        };
+        fetchNotesDay();
+    }
 
     return (
         <View style={styles.container}>
@@ -27,24 +41,21 @@ const NotesContainer = () => {
                     <Text style={styles.addButtonText}>+</Text>
                 </Link>
             </View>
-
             {/* Contenedor de Notas */}
             <View style={styles.notesContainer}>
-                {/* Nota 1 title="Task 1"  text="Complete the project by Friday." */}
-                <Note
-                    title="Task 2"
-                    message="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-                    isFavorite={isFavorite}
-                    setIsFavorite={setIsFavorite}
-                    onNoteEdit={() => console.log("To Note Edit")}
-                    onNoteDelete={() => console.log("To Note Delete")}
-                />
-
+                {dayNotes.map(note => (
+                    <Note
+                        key={note.id}
+                        id={note.id}
+                        title={note.title}
+                        message={note.message}
+                        isFavorite={note.isFavorite}
+                        onNoteDelete={() => handleNoteDelete(note.id)}
+                    />
+                ))}
             </View>
         </View>
     );
 };
-
-
 
 export default NotesContainer;

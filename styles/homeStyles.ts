@@ -3,7 +3,6 @@ import { StyleSheet } from 'react-native';
 const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
-        justifyContent: 'space-between',
         alignItems: 'center',
         padding: 10,
         backgroundColor: 'white', // Ajusta según el diseño

@@ -1,5 +1,6 @@
 
 export type Status = "ToDo" | "Completed";
+export type SortOption = "ToDo" | "Completed" | "All";
 export type ImportanceLevel = "Low" | "Medium" | "High";
 
 export interface CreateTaskProps {

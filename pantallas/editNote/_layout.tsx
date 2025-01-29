@@ -7,19 +7,17 @@ import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-export default function CreateNoteLayout() {
+export default function EditNoteLayout() {
   const colorScheme = useColorScheme();
 
   return (
     <Tabs
       screenOptions={{
-
         headerShown: false,
         tabBarStyle: {
           display: "none"
         }
       }}>
-
     </Tabs>
   );
 }

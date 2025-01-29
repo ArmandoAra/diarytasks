@@ -1,3 +1,4 @@
+import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
 import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 import { formatDate, formatDateToString } from '@/Utils/helpFunctions';
 import React, { createContext, useContext, useState, useEffect, ReactNode, FC } from 'react';
@@ -9,12 +10,14 @@ interface GlobalContextProps {
     loading: boolean;
     day: string;
     tasks: CreateTaskProps[];
+    dayNotes: CreateNoteProps[];
     setUser: React.Dispatch<React.SetStateAction<string>>;
     setIsLogged: React.Dispatch<React.SetStateAction<boolean>>;
     setLoading: React.Dispatch<React.SetStateAction<boolean>>;
     setDay: React.Dispatch<React.SetStateAction<string>>;
 
     setTasks: React.Dispatch<React.SetStateAction<CreateTaskProps[]>>;
+    setDayNotes: React.Dispatch<React.SetStateAction<CreateNoteProps[]>>;
 }
 
 
@@ -24,11 +27,13 @@ const GlobalContext = createContext<GlobalContextProps>({
     loading: true,
     day: "",
     tasks: [],
+    dayNotes: [],
     setUser: () => { },
     setIsLogged: () => { },
     setLoading: () => { },
     setDay: () => { },
     setTasks: () => { },
+    setDayNotes: () => { },
 });
 
 export const useGlobalContext = () => useContext(GlobalContext);
@@ -46,6 +51,7 @@ export const GlobalProvider: FC<GlobalProviderProps> = ({ children }) => {
     const [loading, setLoading] = useState<boolean>(true);
     const [day, setDay] = useState<string>(formatDate(new Date))
     const [tasks, setTasks] = useState<CreateTaskProps[]>([])
+    const [dayNotes, setDayNotes] = useState<CreateNoteProps[]>([])
 
     return (
         <GlobalContext.Provider
@@ -55,11 +61,13 @@ export const GlobalProvider: FC<GlobalProviderProps> = ({ children }) => {
                 loading,
                 day,
                 tasks,
+                dayNotes,
                 setUser,
                 setIsLogged,
                 setDay,
                 setLoading,
                 setTasks,
+                setDayNotes,
             }}
         >
             {children}

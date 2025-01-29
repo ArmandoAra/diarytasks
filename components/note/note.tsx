@@ -1,35 +1,43 @@
 import React, { Dispatch, SetStateAction } from 'react'
 import { View, Text, TouchableOpacity, GestureResponderEvent } from 'react-native'
 
+
+
 //Interface
 export interface NoteProps {
+    id: string,
     title: string;
     message: string;
-    isFavorite: boolean;
-    setIsFavorite: Dispatch<SetStateAction<boolean>>;
-    onNoteEdit?: (event: GestureResponderEvent) => void;
+    isFavorite: number;
     onNoteDelete?: (event: GestureResponderEvent) => void;
 }
 
 // Styles
 import { styles } from './styles'
 import Favorite from '../favoriteToggle/favToggle';
+import { Link } from 'expo-router';
 
 
-const Note = ({ title, message, isFavorite, setIsFavorite, onNoteEdit, onNoteDelete }: NoteProps) => {
+const Note = ({ id, title, message, isFavorite, onNoteDelete }: NoteProps) => {
 
     return (
         <View style={styles.note}>
             <View style={styles.noteHeader}>
                 <Text style={styles.noteTitle}>{title}</Text>
-                <Favorite isFavorite={isFavorite} setIsFavorite={setIsFavorite} />
+                <Favorite isFavorite={isFavorite} id={id} />
             </View>
             <View>
                 <Text style={styles.noteText} >{message}</Text>
                 <View style={styles.actions}>
-                    <TouchableOpacity onPress={onNoteEdit}>
-                        <Text style={styles.actionText}>✏️</Text>
-                    </TouchableOpacity>
+                    <Link
+                        href={{
+                            pathname: '/editNote/[id]',
+                            params: { id }
+                        }}
+
+                    >
+                        ✏️
+                    </Link>
                     <TouchableOpacity onPress={onNoteDelete}>
                         <Text style={styles.actionText}>🗑️</Text>
                     </TouchableOpacity>

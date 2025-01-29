@@ -1,4 +1,4 @@
-import { StyleSheet, Text, Image, ActivityIndicator, Dimensions, ScrollView, View, TouchableOpacity, Pressable } from 'react-native';
+import { StyleSheet, Text, Image, ActivityIndicator, Dimensions, ScrollView, View, TouchableOpacity, Pressable, BackHandler, Alert } from 'react-native';
 import { Link, Redirect, router } from 'expo-router';
 
 import { useEffect, useState } from 'react';
@@ -9,8 +9,15 @@ import { createDatabaseStructure, loadDatabase } from '@/db/db';
 import { createUser, getUser } from '@/db/userDb';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Home from '@/containers/homeContainer/home';
+import { useNavigationState } from '@react-navigation/native';
 
 export default function App() {
+    const currentRoute = useNavigationState(state => {
+        // Obtén la última ruta del stack de navegación
+        const route = state.routes[state.index];
+        return route.name;
+    });
     const [dbLoaded, setDbLoaded] = useState<boolean>(false);
     const { isLogged, setUser, setIsLogged, setLoading, user } = useGlobalContext();
     const [testUser, setTestUser] = useState<Promise<void>>()
@@ -20,16 +27,11 @@ export default function App() {
         loadDatabase()
             .then(() => {
                 setDbLoaded(true);
-                // createDatabaseStructure();
+                createDatabaseStructure();
             })
             .catch((error) => console.log(error));
     }, []);
 
-
-    // useEffect(() => {
-    //     createUser("Luis", setUser, setIsLogged, setLoading)
-    //     console.log(testUser + "line 28 index")
-    // }, [])
 
     useEffect(() => {
         getUser(setUser, setIsLogged)
@@ -45,28 +47,8 @@ export default function App() {
     }
 
     return (
-        <SafeAreaView style={{ flexDirection: 'column', backgroundColor: 'black', marginTop: 60 }} >
-            <View>
-                <View>
-                    <View style={{ flexDirection: 'column', }} >
-                        <Text style={{ fontSize: 100, color: "white", paddingHorizontal: 20, marginTop: 60 }}>Diary</Text>
-                        <Text style={{ fontSize: 100, color: "white", paddingHorizontal: 20, marginTop: -30 }}>Tasks</Text>
-                    </View>
-                    <Text style={{ fontSize: 50, color: 'black', padding: 20, backgroundColor: '#fff' }}>Hi, {user || "New User"}.</Text>
-                    <Text style={{ fontSize: 23, color: 'white', padding: 20 }}>Keep safe all your tasks and daily notes.</Text>
-                </View>
-
-            </View>
-            <View>
-                <Link
-                    style={{ height: 60, backgroundColor: '#0c4a6e', alignItems: 'center', justifyContent: 'center', width: '80%', borderRadius: 30, marginVertical: 30, marginHorizontal: '10%' }}
-                    href="/home" asChild
-                >
-                    <Pressable>
-                        <Text style={{ color: 'white', fontSize: 24 }}>Tasks</Text>
-                    </Pressable>
-                </Link>
-            </View>
+        <SafeAreaView style={{ flexDirection: 'column', backgroundColor: 'black', flex: 1 }} >
+            <Home />
         </SafeAreaView>
     );
 }

@@ -14,7 +14,10 @@ import { Picker } from '@react-native-picker/picker';
 import CheckBox from '@react-native-community/checkbox';
 
 // Styles
-import styles from '../../../styles/editTaskStyles';
+import styles from '../../styles/editTaskStyles';
+
+// Utils
+import { searchTaskById } from '@/Utils/helpFunctions';
 
 // Date Picker
 import { Button as PickerButton } from 'react-native-paper';
@@ -24,11 +27,6 @@ import { useGlobalContext } from '@/context/GlobalProvider';
 import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 import { getTasksByDate, updateTaskById } from '@/db/taskDb';
 registerTranslation('en', en)
-
-export function searchTaskById(id: string | string[], data: CreateTaskProps[]) {
-  const result = data.filter((task) => task.id == id);
-  return result;
-}
 
 
 
@@ -72,6 +70,7 @@ const EditTask = () => {
     updateTaskById(id.toString(), data)
 
     const fetchTasks = async () => {
+      console.log(id)
       const response = await getTasksByDate(data.date);
       if (response.success && response.data) {
         setTasks(response.data);
@@ -83,22 +82,9 @@ const EditTask = () => {
 
     fetchTasks();
 
-    router.push("/home")
+    router.push("/")
   };
 
-  //Single Date Picker
-  const [dates, setDates] = React.useState();
-  const [open, setOpen] = React.useState(false);
-
-  const onDismiss = React.useCallback(() => {
-    setOpen(false);
-  }, [setOpen]);
-
-  const onConfirm = React.useCallback((params: any) => {
-    setOpen(false);
-    setDates(params.dates);
-    console.log('[on-change-multi]', params);
-  }, []);
 
   return (
     <ScrollView style={styles.container}>
