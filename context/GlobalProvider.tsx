@@ -3,33 +3,39 @@ import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 import { formatDate, formatDateToString } from '@/Utils/helpFunctions';
 import React, { createContext, useContext, useState, useEffect, ReactNode, FC } from 'react';
 
+interface User {
+    id: string;
+    name: string;
+}
 
 interface GlobalContextProps {
-    isLogged: boolean;
-    user: string;
+    user: User;
     loading: boolean;
     day: string;
     tasks: CreateTaskProps[];
     dayNotes: CreateNoteProps[];
-    setUser: React.Dispatch<React.SetStateAction<string>>;
-    setIsLogged: React.Dispatch<React.SetStateAction<boolean>>;
+    settingsOpen: boolean;
+    setSettingsOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    setUser: React.Dispatch<React.SetStateAction<User>>;
     setLoading: React.Dispatch<React.SetStateAction<boolean>>;
     setDay: React.Dispatch<React.SetStateAction<string>>;
-
     setTasks: React.Dispatch<React.SetStateAction<CreateTaskProps[]>>;
     setDayNotes: React.Dispatch<React.SetStateAction<CreateNoteProps[]>>;
 }
 
 
 const GlobalContext = createContext<GlobalContextProps>({
-    isLogged: false,
-    user: "",
+    user: {
+        id: "",
+        name: ""
+    },
     loading: true,
     day: "",
     tasks: [],
     dayNotes: [],
+    settingsOpen: false,
+    setSettingsOpen: () => { },
     setUser: () => { },
-    setIsLogged: () => { },
     setLoading: () => { },
     setDay: () => { },
     setTasks: () => { },
@@ -46,24 +52,24 @@ interface GlobalProviderProps {
 
 export const GlobalProvider: FC<GlobalProviderProps> = ({ children }) => {
 
-    const [isLogged, setIsLogged] = useState<boolean>(false);
-    const [user, setUser] = useState<string>("");
     const [loading, setLoading] = useState<boolean>(true);
+    const [user, setUser] = useState<User>({ id: "", name: "" });
     const [day, setDay] = useState<string>(formatDate(new Date))
     const [tasks, setTasks] = useState<CreateTaskProps[]>([])
     const [dayNotes, setDayNotes] = useState<CreateNoteProps[]>([])
+    const [settingsOpen, setSettingsOpen] = useState<boolean>(false)
 
     return (
         <GlobalContext.Provider
             value={{
-                isLogged,
                 user,
                 loading,
                 day,
                 tasks,
                 dayNotes,
+                settingsOpen,
+                setSettingsOpen,
                 setUser,
-                setIsLogged,
                 setDay,
                 setLoading,
                 setTasks,

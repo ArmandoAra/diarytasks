@@ -41,6 +41,17 @@
         }
       ],
       [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/SpaceMono-Regular.ttf",
+            "./assets/fonts/Cagliostro-Regular.ttf",
+            "./assets/fonts/Kavivanar-Regular.ttf",
+            "./assets/fonts/Pacifico-Regular.ttf"
+          ]
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",

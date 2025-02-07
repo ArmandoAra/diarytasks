@@ -1,21 +1,18 @@
+import { Colors } from '@/constants/Colors';
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
     container: {
-        flexGrow: 1,
+        flex: 1,
         alignItems: 'center',
-        padding: 10,
-        backgroundColor: 'white', // Ajusta según el diseño
     },
     title: {
+        backgroundColor: Colors.light.secondary,
+        height: 80,
         fontSize: 24,
         fontWeight: 'bold',
-        textAlign: 'center',
-        marginTop: 10,
-    },
-    greetingContainer: {
-        width: '100%',
-        padding: 10,
+        textAlignVertical: "bottom",
+        paddingHorizontal: 7,
     },
     greeting: {
         fontSize: 18,

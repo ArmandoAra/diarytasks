@@ -1,14 +1,16 @@
 import { Link } from 'expo-router';
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, ScrollView } from 'react-native';
+
 
 // Components
 import Note from '../../components/note/note';
 
 //Styles
-import { styles } from './styles';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { deleteNoteById, getNotesByDate } from '@/db/noteDb';
+import { Colors } from '@/constants/Colors';
+
 
 
 const NotesContainer = () => {
@@ -30,32 +32,26 @@ const NotesContainer = () => {
     }
 
     return (
-        <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <Text style={styles.headerText}>Daily Notes</Text>
-                <Link style={styles.addButton}
-                    href={'/createNote'}
-                    asChild
-                    accessibilityLabel="Create New Note">
-                    <Text style={styles.addButtonText}>+</Text>
-                </Link>
-            </View>
-            {/* Contenedor de Notas */}
-            <View style={styles.notesContainer}>
-                {dayNotes.map(note => (
-                    <Note
-                        key={note.id}
-                        id={note.id}
-                        title={note.title}
-                        message={note.message}
-                        isFavorite={note.isFavorite}
-                        onNoteDelete={() => handleNoteDelete(note.id)}
-                    />
+        <View style={{ height: "26%", paddingVertical: 3 }}>
+            <ScrollView horizontal={true} style={{
+                backgroundColor: Colors.light.background,
+            }}>
+                {dayNotes.map((note, index) => (
+                    <View key={note.id} style={index === 0 ? { marginLeft: 150 } : {}}>
+                        <Note
+                            id={note.id}
+                            title={note.title}
+                            message={note.message}
+                            isFavorite={note.isFavorite}
+                            onNoteDelete={() => handleNoteDelete(note.id)}
+                        />
+                    </View>
                 ))}
-            </View>
+            </ScrollView>
         </View>
     );
 };
 
 export default NotesContainer;
+
+

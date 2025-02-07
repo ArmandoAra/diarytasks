@@ -1,11 +1,13 @@
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
-import { handleUrlParams } from 'expo-router/build/fork/getStateFromPath-forks';
 import React, { useEffect, useState } from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
 
 // db
 import { getNotesByDate, updateFavorite } from '@/db/noteDb';
 import { useGlobalContext } from '@/context/GlobalProvider';
+
+// Icons
+import Fontisto from '@expo/vector-icons/Fontisto';
 
 interface IFavToggleProps {
     id: string;
@@ -36,11 +38,11 @@ const Favorite = ({ id, isFavorite }: IFavToggleProps) => {
         <View>
             {isFavorite === 1 ? (
                 <TouchableOpacity onPress={() => handleFavoriteToggle(0)}>
-                    <Text>🌟</Text>
+                    <Fontisto name="heart" size={24} color="red" />
                 </TouchableOpacity>
             ) : (
                 <TouchableOpacity onPress={() => handleFavoriteToggle(1)}>
-                    <Text>☆</Text>
+                    <Fontisto name="heart-alt" size={24} color="red" />
                 </TouchableOpacity>
             )}
         </View>

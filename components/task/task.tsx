@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -14,11 +14,20 @@ import { Link } from 'expo-router';
 
 import { deleteTaskById, getAllTasks, getTasksByDate, updateTaskStatus } from '@/db/taskDb';
 import { useGlobalContext } from '@/context/GlobalProvider';
-import { handleUrlParams } from 'expo-router/build/fork/getStateFromPath-forks';
 
-var priorityHighColor = "#590000";
-var priorityMediumColor = "#767600";
-var priorityLowColor = "#006400";
+// Utils
+import { priorityColorHandler } from '@/Utils/helpFunctions';
+
+// Icons
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '@/constants/Colors';
+import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
+import { StatusIcon } from '@/Utils/renderIcons';
+
+//Navigation
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { RootStackParamList } from '@/interfaces/types'; // Importa el tipo de rutas
 
 const Task = ({
     id,
@@ -28,7 +37,7 @@ const Task = ({
     date,
     status
 }: CreateTaskProps) => {
-    const [priorityColor, setpriorityColor] = useState<string>(priorityLowColor);
+    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
     const { day, setTasks, setLoading } = useGlobalContext();
     const [tasksError, setTasksError] = useState<string>("");
 
@@ -39,8 +48,6 @@ const Task = ({
     const handleDoubleTap = async () => {
         const now = Date.now();
         if (now - lastTap < DOUBLE_TAP_DELAY) {
-            // Acción a realizar en doble tap
-            console.log(status);
             setLoading(true);
             const response = await updateTaskStatus(id, status);
             if (response.success) {
@@ -54,20 +61,6 @@ const Task = ({
     };
 
 
-    // Implementado el color de priority
-    useEffect(() => {
-        switch (priority) {
-            case "High":
-                setpriorityColor(priorityHighColor);
-                break;
-            case "Medium":
-                setpriorityColor(priorityMediumColor);
-                break;
-            case "Low":
-                setpriorityColor(priorityLowColor);
-                break;
-        }
-    }, []);
 
     const handleTaskDelete = async () => {
         const deleteTask = async () => {
@@ -95,32 +88,53 @@ const Task = ({
     }
 
     return (
-        <Pressable style={styles.taskContainer} onPress={handleDoubleTap}>
-            <Text style={{ color: "white" }}>{status}</Text>
-            <View style={styles.taskHeader}>
-                <Text style={styles.title}>{title}</Text>
-                <Text style={{ ...styles.priorityLevel, backgroundColor: priorityColor }}>{priority}</Text>
-            </View>
-            <Text style={styles.description}>{description}</Text>
-            <View style={styles.actionContainer}>
-                <Text style={styles.actionTextHint}>Double Tap to Complete</Text>
+        <Pressable onPress={handleDoubleTap} style={{
+            marginTop: 14,
+            borderBottomColor: Colors.text.textDark,
+            borderBottomWidth: 1,
+            borderBottomStartRadius: 13,
+            borderBottomEndRadius: 28
+        }}>
+            <View style={{ flexDirection: "row" }}>
+                <Text style={{ width: "10%" }}>{StatusIcon(status)} </Text>
 
-                <View>
-                    <Link
-                        href={{
-                            pathname: '/editTask/[id]',
-                            params: { id }
-                        }}
-                    >
-                        ✏️
-                    </Link>
+                <View style={{ justifyContent: "space-between", width: "85%" }}>
+                    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                        <Text style={{
+                            fontSize: 14,
+                            fontFamily: "Cagliostro",
+                            borderBottomWidth: 1,
+                            borderBottomEndRadius: 5,
+                            borderBottomRightRadius: 5,
+                            borderColor: Colors.text.textDark,
+                        }}>{title}</Text>
+
+                        <Text style={{
+                            fontSize: 10,
+                            backgroundColor: priorityColorHandler(priority),
+                            height: 20,
+                            textAlignVertical: "center",
+                            paddingHorizontal: 5,
+                            opacity: 0.5,
+                            borderRadius: 16
+                        }}>{priority}</Text>
+
+                    </View>
+                    <Text style={{ fontSize: 12, fontFamily: "Kavivanar" }}>{description}</Text>
+                    <View style={{ flexDirection: "row", marginTop: 10 }}>
+                        <Text style={{ fontSize: 8, color: Colors.dark.secondary, textAlignVertical: "bottom", marginHorizontal: "auto" }}> {status == "ToDo" && "Double Tap to Complete"}</Text>
+                        <View style={{ flexDirection: "row", gap: 25 }}>
+                            <TouchableOpacity onPress={() => navigation.navigate('EditTask', { id })}>
+                                <FontAwesome6 name="pen-to-square" size={21} color={Colors.light.background2} />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={handleTaskDelete}>
+                                <Text ><Ionicons name="trash-bin" size={24} color={Colors.light.background2} /></Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </View>
-                <TouchableOpacity onPress={handleTaskDelete}>
-                    <Text style={styles.actionText}>🗑️</Text>
-                </TouchableOpacity>
-
             </View>
-        </Pressable>
+        </Pressable >
     );
 };
 

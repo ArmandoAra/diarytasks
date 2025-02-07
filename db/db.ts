@@ -4,8 +4,8 @@ import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset'; //Para obtener el Uri de el archivo de la Db
 
 
-
 export const loadDatabase = async () => {
+
     const dbName = 'diaryTasks.db';
     try {
         const dbAsset = require('@/assets/db/diaryTasks.db');// db file in assets folder

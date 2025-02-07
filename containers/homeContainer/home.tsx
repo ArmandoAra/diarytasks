@@ -1,23 +1,16 @@
-import TasksContainer from '../../containers/tasksContainer/tasks';
-import NotesContainer from '../../containers/notesContainer/notesContainer';
+import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Pressable, BackHandler, Alert } from 'react-native';
 
 // Components
 import Header from '@/components/header/header';
-
-// Styles
-import styles from '../../styles/homeStyles';
+import TasksContainer from '../../containers/tasksContainer/tasks';
+import NotesContainer from '../../containers/notesContainer/notesContainer';
 
 // Context
 import { useGlobalContext } from '@/context/GlobalProvider';
-import { router } from 'expo-router';
-import { Stack, Tabs, Link } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
-import { getAllTasks, getTasksByDate } from '@/db/taskDb';
-import { formatDate, formatDateToString } from '@/Utils/helpFunctions';
-import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
+import { getTasksByDate } from '@/db/taskDb';
 import { getNotesByDate } from '@/db/noteDb';
-import { useNavigationState } from '@react-navigation/native';
+import ThemedView from '@/Theme/themedView/themedView';
 
 export default function Home() {
   const {
@@ -27,19 +20,13 @@ export default function Home() {
     setDayNotes,
   } = useGlobalContext();
 
-  const [tasksError, setTasksError] = useState<string>("");
-  const [notesError, setNotesError] = useState<string>('');
-
-
-  // Obteniendo las tareas
   useEffect(() => {
     const fetchTasks = async () => {
       const response = await getTasksByDate(day);
-      // const response = await getAllTasks(); 
       if (response.success && response.data) {
         setTasks(response.data);
       } else {
-        setTasksError(response.message || 'An error occurred while fetching tasks.');
+        console.log(response.message || 'An error occurred while fetching tasks.');
       }
     };
 
@@ -48,7 +35,7 @@ export default function Home() {
       if (response.success && response.data) {
         setDayNotes(response.data);
       } else {
-        setNotesError(response.message || 'An error occurred while fetching notes.');
+        console.log(response.message || 'An error occurred while fetching notes.');
       }
     };
 
@@ -84,15 +71,11 @@ export default function Home() {
 
 
   return (
-
-    <ScrollView contentContainerStyle={styles.container}>
-
+    <ThemedView style={{ flex: 1, gap: 3 }}  >
       <Header />
       <TasksContainer />
       <NotesContainer />
-
-    </ScrollView>
-
+    </ThemedView>
   );
 }
 

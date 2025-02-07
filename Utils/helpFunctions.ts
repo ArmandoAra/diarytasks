@@ -1,6 +1,10 @@
 import { CreateNoteProps } from "@/interfaces/NotesInterfaces";
 import { CreateTaskProps } from "@/interfaces/TasksInterfaces";
 
+import { Colors } from "@/constants/Colors";
+
+
+
 // Generador de Id
 export const generateId = () => `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
@@ -95,3 +99,18 @@ export function searchNoteById(id: string | string[], data: CreateNoteProps[]) {
     const result = data.filter((note) => note.id == id);
     return result;
 }
+
+// Imported in task.tsx
+export function priorityColorHandler(priority: string) {
+    switch (priority) {
+        case "High":
+            return "#E05D5D"
+        case "Medium":
+            return "#FFB344"
+        case "Low":
+            return "#00A19D";
+    }
+}
+
+
+
