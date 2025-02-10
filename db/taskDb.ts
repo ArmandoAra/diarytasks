@@ -6,6 +6,7 @@ import * as SQLite from 'expo-sqlite';
 
 // Interfaces
 import { CreateTaskProps, Status } from '@/interfaces/TasksInterfaces';
+import { formatDate, getUniqueDates, processTasks } from '@/Utils/helpFunctions';
 
 
 // createTaskByTemplateId()
@@ -179,40 +180,3 @@ export async function updateTaskStatus(id: string, status: Status) {
         return { success: false, message: 'Error updating task', error };
     }
 }
-
-// Uso del update
-// (async () => {
-//     const updateResult = await updateTaskById(1, {
-//         title: 'Updated Task Title',
-//         description: 'Updated task description',
-//         priority: 2,
-//         status: 'completed',
-//         date: '2025-01-25',
-//     });
-
-//     console.log(updateResult);
-// })();
-
-// Uso del getTasksByDate
-// (async () => {
-//     const date = '2025-01-25'; // Fecha específica
-//     const tasksResult = await getTasksByDate(date);
-
-//     if (tasksResult.success) {
-//         console.log('Tasks for the date:', tasksResult.tasks);
-//     } else {
-//         console.log(tasksResult.message);
-//     }
-// })();
-
-// Uso del delete
-// (async () => {
-//     const taskId = 1; // ID de la tarea que deseas eliminar
-//     const deleteResult = await deleteTaskById(taskId);
-
-//     if (deleteResult.success) {
-//         console.log(deleteResult.message);
-//     } else {
-//         console.log(deleteResult.message);
-//     }
-// })();

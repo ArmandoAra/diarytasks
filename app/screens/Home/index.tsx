@@ -24,15 +24,33 @@ import NotesContainer from '@/containers/notesContainer/notesContainer';
 import TasksContainer from '@/containers/tasksContainer/tasks';
 import Header from '@/components/header/header';
 import navigation from '@react-navigation/native';
+import { formatDate } from '@/Utils/helpFunctions';
+import use from 'react';
+import EditTaskScreen from '../editTask/[id]';
+import EditNoteScreen from '../editNote/[id]';
 
 interface HomeProps {
     navigation: any;
 }
 
+const today = formatDate(new Date());
 
 const Home: React.FC<HomeProps> = ({ navigation }) => {
     const [dbLoaded, setDbLoaded] = useState<boolean>(false);
-    const { user, setUser, setLoading } = useGlobalContext();
+
+    const {
+        user,
+        day,
+        editNoteOpen,
+        editTaskOpen,
+        setEditNoteOpen,
+        setEditTaskOpen,
+        setUser,
+        setLoading,
+        setDay,
+        setTasks,
+        loading,
+        setDayNotes, } = useGlobalContext();
 
     useEffect(() => {
         loadDatabase()
@@ -44,13 +62,6 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
         getUser(setUser, setLoading)
     }, []);
 
-    const {
-        day,
-        setTasks,
-        loading,
-        setDayNotes,
-    } = useGlobalContext();
-
     useEffect(() => {
         const fetchTasks = async () => {
             const response = await getTasksByDate(day);
@@ -61,6 +72,11 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
             }
         };
 
+        fetchTasks();
+
+    }, [day, loading]);
+
+    useEffect(() => {
         const fetchNotesDay = async () => {
             const response = await getNotesByDate(day);
             if (response.success && response.data) {
@@ -69,14 +85,37 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
                 console.log(response.message || 'An error occurred while fetching notes.');
             }
         };
-
         fetchNotesDay();
-        fetchTasks();
-    }, [day, loading])
+        setLoading(false);
+    }, [day, loading]);
+
+    useEffect(() => {
+        const backAction = () => {
+            if (!editNoteOpen.isOpen && !editTaskOpen.isOpen) {
+                Alert.alert("Hold on!", "Are you sure you want to exit?", [
+                    { text: "Cancel", onPress: () => null, style: "cancel" },
+                    { text: "YES", onPress: () => BackHandler.exitApp() }
+                ]);
+                return true; // Bloquea el comportamiento por defecto
+            } else {
+                setEditNoteOpen({ isOpen: false, id: "" });
+                setEditTaskOpen({ isOpen: false, id: "" });
+                return true; // Bloquea el comportamiento por defecto
+            }
+        };
+
+        // Agregar el evento al presionar el botón de retroceso
+        const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+
+        // Limpiar el evento al desmontar o cuando cambien las dependencias
+        return () => backHandler.remove();
+    }, [editNoteOpen, editTaskOpen]);
 
     return (
         <>
             <StatusBar translucent backgroundColor={Colors.light.primary} barStyle={'light-content'} />
+            {editTaskOpen.isOpen && <EditTaskScreen />}
+            {editNoteOpen.isOpen && <EditNoteScreen />}
             {!dbLoaded
                 ? <Loader />
                 :

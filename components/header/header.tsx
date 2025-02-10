@@ -22,7 +22,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@/interfaces/types'; // Importa el tipo de rutas
 
 const Header = () => {
-    const { user, day, setDay, setSettingsOpen } = useGlobalContext();
+    const { user, day, setDay, setLoading } = useGlobalContext();
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
     //Single Date Picker
@@ -39,7 +39,9 @@ const Header = () => {
         setDay(formatDate(params.date));
     }, []);
 
+
     const handleDayNavigate = (to: "back" | "today" | "next") => {
+        setLoading(true)
         switch (to) {
             case "back":
                 let backDay = getBackDay(day);
@@ -52,7 +54,6 @@ const Header = () => {
                 let nextDay = getNextDay(day)
                 setDay(nextDay);
                 break;
-
             default:
                 break;
         }

@@ -146,7 +146,6 @@ export default function App() {
     return (
         <SQLiteProvider databaseName='diaryTasks.db'>
             <GlobalProvider>
-
                 <ThemeProvider>
                     <AppNavigator />
                 </ThemeProvider>

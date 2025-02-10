@@ -3,22 +3,31 @@ import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 import { formatDate, formatDateToString } from '@/Utils/helpFunctions';
 import React, { createContext, useContext, useState, useEffect, ReactNode, FC } from 'react';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 interface User {
     id: string;
     name: string;
+}
+
+interface EditProps {
+    isOpen: boolean,
+    id: string
 }
 
 interface GlobalContextProps {
     user: User;
     loading: boolean;
     day: string;
+    editTaskOpen: EditProps;
+    editNoteOpen: EditProps;
     tasks: CreateTaskProps[];
     dayNotes: CreateNoteProps[];
-    settingsOpen: boolean;
-    setSettingsOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setUser: React.Dispatch<React.SetStateAction<User>>;
     setLoading: React.Dispatch<React.SetStateAction<boolean>>;
     setDay: React.Dispatch<React.SetStateAction<string>>;
+    setEditTaskOpen: React.Dispatch<React.SetStateAction<EditProps>>;
+    setEditNoteOpen: React.Dispatch<React.SetStateAction<EditProps>>;
     setTasks: React.Dispatch<React.SetStateAction<CreateTaskProps[]>>;
     setDayNotes: React.Dispatch<React.SetStateAction<CreateNoteProps[]>>;
 }
@@ -30,14 +39,22 @@ const GlobalContext = createContext<GlobalContextProps>({
         name: ""
     },
     loading: true,
-    day: "",
+    day: '',
+    editTaskOpen: {
+        isOpen: false,
+        id: ""
+    },
+    editNoteOpen: {
+        isOpen: false,
+        id: ""
+    },
     tasks: [],
     dayNotes: [],
-    settingsOpen: false,
-    setSettingsOpen: () => { },
     setUser: () => { },
     setLoading: () => { },
     setDay: () => { },
+    setEditTaskOpen: () => { },
+    setEditNoteOpen: () => { },
     setTasks: () => { },
     setDayNotes: () => { },
 });
@@ -52,12 +69,14 @@ interface GlobalProviderProps {
 
 export const GlobalProvider: FC<GlobalProviderProps> = ({ children }) => {
 
-    const [loading, setLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState<boolean>(false);
     const [user, setUser] = useState<User>({ id: "", name: "" });
-    const [day, setDay] = useState<string>(formatDate(new Date))
+    const [day, setDay] = useState<string>(formatDate(new Date()));
     const [tasks, setTasks] = useState<CreateTaskProps[]>([])
     const [dayNotes, setDayNotes] = useState<CreateNoteProps[]>([])
-    const [settingsOpen, setSettingsOpen] = useState<boolean>(false)
+    const [editTaskOpen, setEditTaskOpen] = useState<EditProps>({ isOpen: false, id: "" });
+    const [editNoteOpen, setEditNoteOpen] = useState<EditProps>({ isOpen: false, id: "" });
+
 
     return (
         <GlobalContext.Provider
@@ -65,12 +84,14 @@ export const GlobalProvider: FC<GlobalProviderProps> = ({ children }) => {
                 user,
                 loading,
                 day,
+                editTaskOpen,
+                editNoteOpen,
                 tasks,
                 dayNotes,
-                settingsOpen,
-                setSettingsOpen,
                 setUser,
                 setDay,
+                setEditTaskOpen,
+                setEditNoteOpen,
                 setLoading,
                 setTasks,
                 setDayNotes,

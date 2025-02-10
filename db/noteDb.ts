@@ -6,6 +6,7 @@ import * as SQLite from 'expo-sqlite';
 
 // Interfaces
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
+import { formatDate } from '@/Utils/helpFunctions';
 
 
 // createTaskByTemplateId()
@@ -159,5 +160,28 @@ export async function updateFavorite(id: string, isFavorite: number) {
     } catch (error) {
         console.log('Error updating note:', error);
         return { success: false, message: 'Error updating note', error };
+    }
+}
+
+export async function getFavoritesNotes(): Promise<{ success: boolean; data?: CreateNoteProps[]; message?: string; error?: any }> {
+    const db = await SQLite.openDatabaseAsync('diaryTasks.db');
+    try {
+        // Consultar las tareas para una fecha específica
+        const result = await db.getAllAsync(
+            `SELECT * FROM Note WHERE isFavorite = ?`,
+            [1]
+        );
+
+        // Verificar si se encontraron notas
+        if (result && Array.isArray(result)) {
+            console.log('Notes retrieved successfully');
+            return { success: true, data: result as CreateNoteProps[] };
+        } else {
+            console.log('No Notes found for the specified date');
+            return { success: false, message: 'No Notes found for the specified date' };
+        }
+    } catch (error) {
+        console.log('Error retrieving Notes:', error);
+        return { success: false, message: 'Error retrieving Notes', error };
     }
 }

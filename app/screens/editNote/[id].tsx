@@ -11,7 +11,7 @@ import {
   BackHandler,
   Alert,
 } from 'react-native';
-import { router, Stack, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+
 import { Picker } from '@react-native-picker/picker';
 import CheckBox from '@react-native-community/checkbox';
 
@@ -30,21 +30,21 @@ import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 import { getTasksByDate, updateTaskById } from '@/db/taskDb';
 import { getNotesByDate, updateNoteById } from '@/db/noteDb';
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
-import { useRoute } from '@react-navigation/native';
-import { Fontisto, MaterialIcons } from '@expo/vector-icons';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { FontAwesome, Fontisto, MaterialIcons } from '@expo/vector-icons';
 import { Colors } from "@/constants/Colors";
 import Svg, { Line } from 'react-native-svg';
+import navigation from '@react-navigation/native';
+import { BottomTabNavProps } from '@/interfaces/types';
 registerTranslation('en', en)
 
 
 
 const EditNoteScreen = () => {
-  const route = useRoute();
 
-  const { id } = route.params as { id: string };
-
-  const { dayNotes, setDayNotes } = useGlobalContext();
+  const { dayNotes, setDayNotes, setEditNoteOpen, editNoteOpen } = useGlobalContext();
   const [notesError, setNotesError] = useState<string>("");
+  const navigation = useNavigation<BottomTabNavProps>();
 
   const [data, setData] = useState<CreateNoteProps>(
     {
@@ -57,7 +57,7 @@ const EditNoteScreen = () => {
   );
 
   useEffect(() => {
-    const selectedNote = searchNoteById(id, dayNotes);
+    const selectedNote = searchNoteById(editNoteOpen.id, dayNotes);
     setData((prevData) => ({
       ...prevData,
       title: selectedNote[0].title,
@@ -76,7 +76,7 @@ const EditNoteScreen = () => {
   };
 
   const handleSubmit = () => {
-    updateNoteById(id.toString(), data)
+    updateNoteById(editNoteOpen.id.toString(), data)
 
     const fetchTasks = async () => {
       const response = await getNotesByDate(data.date);
@@ -90,14 +90,14 @@ const EditNoteScreen = () => {
 
     fetchTasks();
 
-    router.push("/")
+    setEditNoteOpen({ isOpen: false, id: "" })
   };
 
 
 
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: Colors.light.background }}>
+    <View style={{ width: "100%", height: "100%", zIndex: 10, backgroundColor: Colors.light.background }}>
       <View style={styles.container}>
         <View style={{
           backgroundColor: Colors.light.secondary2,
@@ -118,6 +118,8 @@ const EditNoteScreen = () => {
                 <Fontisto name="heart" size={24} color="red" />
               )}
             </TouchableOpacity>
+            <TouchableOpacity style={{ position: "relative", top: -20, right: -10 }} onPress={() => setEditNoteOpen({ isOpen: false, id: "" })}>
+              <FontAwesome name="close" size={34} color={Colors.light.primary} /></TouchableOpacity>
           </View>
 
           {/* Fondo estilo libreta */}
@@ -172,7 +174,7 @@ const EditNoteScreen = () => {
           </TouchableOpacity>
         </View>
       </View>
-    </ScrollView>
+    </View>
 
 
   );

@@ -19,6 +19,8 @@ import { useGlobalContext } from '@/context/GlobalProvider';
 import { Fontisto, MaterialIcons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import Svg, { Line } from 'react-native-svg';
+import { useNavigation } from '@react-navigation/native';
+import { BottomTabNavProps } from '@/interfaces/types';
 
 const initialNoteData = (day: string) => {
   return {
@@ -33,9 +35,10 @@ const initialNoteData = (day: string) => {
 
 
 const CreateNoteTab = () => {
-  const { day, setDayNotes } = useGlobalContext();
+  const { day, setDayNotes, setLoading, setDay, loading } = useGlobalContext();
   const [notesError, setNotesError] = useState<string>('');
   const [note, setNote] = useState<CreateNoteProps>(initialNoteData(day));
+  const navigation = useNavigation<BottomTabNavProps>();
 
   const handleChanges = (key: keyof CreateNoteProps, value: string | boolean | number) => {
     setNote((prevData) => ({
@@ -45,24 +48,22 @@ const CreateNoteTab = () => {
   };
 
   const handleSubmit = () => {
+    setLoading(true);
     createNote(note)
-    const fetchNotesDay = async () => {
-      const response = await getNotesByDate(day);
-      if (response.success && response.data) {
-        setDayNotes(response.data);
-      } else {
-        setNotesError(response.message || 'An error occurred while fetching notes.');
-      }
-    };
-    fetchNotesDay();
-    setNote(initialNoteData(day));
+      .then(() => {
+        setLoading(false);
+        navigation.navigate("HomeTab");
+      })
+      .catch((error) => {
+        console.log(error);
+        setLoading(false);
+      });
 
-    router.push("/")
   };
 
   useEffect(() => {
     setNote(initialNoteData(day))
-  }, [day])
+  }, [day, loading])
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: Colors.light.background }}>
@@ -72,21 +73,34 @@ const CreateNoteTab = () => {
           width: "90%",
           marginHorizontal: "5%",
           padding: 10,
-          borderRadius: 16,
           gap: 10,
-          marginTop: 15
-
+          marginTop: 15,
+          // sombra
+          elevation: 5
         }}>
+
           <View style={{ flexDirection: "row", justifyContent: 'space-around', alignItems: 'center' }}>
             <Text style={styles.label}>Create Note</Text>
-            <TouchableOpacity onPress={() => handleChanges("isFavorite", note.isFavorite == 1 ? 0 : 1)}>
-              {note.isFavorite == 0 ? (
-                <Fontisto name="heart-alt" size={24} color="red" />
-              ) : (
-                <Fontisto name="heart" size={24} color="red" />
-              )}
-            </TouchableOpacity>
+            <View style={{ flexDirection: "column", gap: 10, alignItems: "flex-end" }}>
+              <Text style={{
+                fontSize: 16
+                , fontFamily: "Kavivanar"
+                , textAlign: "center"
+                , color: Colors.light.background2,
+                backgroundColor: Colors.light.primary,
+                height: 30, paddingHorizontal: 5,
+              }}>{day}</Text>
+
+              <TouchableOpacity onPress={() => handleChanges("isFavorite", note.isFavorite == 1 ? 0 : 1)}>
+                {note.isFavorite == 0 ? (
+                  <Fontisto name="heart-alt" size={24} color="red" />
+                ) : (
+                  <Fontisto name="heart" size={24} color="red" />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
+
           <View style={{ overflow: "scroll", backgroundColor: Colors.light.primaryDark, borderRadius: 16 }}>
             {/* Note Background */}
             <View style={stylesSvg.background}>
@@ -156,7 +170,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontFamily: 'Pacifico',
     textAlign: 'right',
-    textAlignVertical: 'center',
+    textAlignVertical: 'bottom',
   },
   input: {
     alignContent: 'flex-start',
@@ -168,14 +182,12 @@ const styles = StyleSheet.create({
 const stylesSvg = StyleSheet.create({
   container: {
     backgroundColor: '#FFFDE7',
-    elevation: 5,
     shadowColor: 'rgba(0, 0, 0, 0.5)',
     shadowOffset: { width: 1, height: 1 },
     shadowOpacity: 0.5,
     shadowRadius: 2,
   },
   background: {
-    elevation: 6,
     flex: 1,
     position: 'absolute',
     width: '100%',

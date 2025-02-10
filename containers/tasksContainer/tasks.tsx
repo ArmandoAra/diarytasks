@@ -1,29 +1,27 @@
-import React, { forwardRef, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Button, Pressable, TextStyle } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 import Task from '../../components/task/task'; // Ajusta la ruta según tu proyecto
-import { Link, router } from 'expo-router';
 
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { Colors } from '../../constants/Colors';
 import { CreateTaskProps, SortOption } from '@/interfaces/TasksInterfaces';
 
 // Styles
-import TornPaperButton from '@/components/buttons/buttonToCreate';
-import ThemedText from '@/Theme/themedText/text';
 import { formatDateToString } from '@/Utils/helpFunctions';
 
 // Icons
 import Entypo from '@expo/vector-icons/Entypo';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { getTasksByDate } from '@/db/taskDb';
 
 
 const TasksContainer = () => {
     const [sortOption, setSortOption] = React.useState<SortOption>("All");
-    const { tasks, day, setTasks, setLoading } = useGlobalContext();
+    const { tasks, day, setTasks, loading } = useGlobalContext();
 
 
     const [sortedTasks, setSortedTasks] = useState<CreateTaskProps[]>(tasks);
+
+
 
 
     useEffect(() => {
@@ -38,7 +36,15 @@ const TasksContainer = () => {
 
     return (
         <View
-            style={{ width: "96%", borderTopLeftRadius: 26, borderRadius: 16, overflow: "hidden", marginHorizontal: "auto", height: "54%", backgroundColor: Colors.light.secondary }}>
+            style={{
+                width: "96%",
+                borderTopLeftRadius: 26,
+                borderRadius: 16,
+                overflow: "hidden",
+                marginHorizontal: "auto",
+                height: "54%",
+                backgroundColor: Colors.light.secondary
+            }}>
             <View style={{ width: "100%", margin: "auto", height: "10%", backgroundColor: Colors.light.secondary }}>
                 <Text style={{ fontSize: 18, fontFamily: "Kavivanar", margin: "auto" }}>{formatDateToString(day)}</Text>
             </View >

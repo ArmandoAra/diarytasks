@@ -38,7 +38,7 @@ const Task = ({
     status
 }: CreateTaskProps) => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-    const { day, setTasks, setLoading } = useGlobalContext();
+    const { day, setTasks, setLoading, setEditTaskOpen } = useGlobalContext();
     const [tasksError, setTasksError] = useState<string>("");
 
 
@@ -102,6 +102,7 @@ const Task = ({
                     <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                         <Text style={{
                             fontSize: 14,
+                            width: "80%",
                             fontFamily: "Cagliostro",
                             borderBottomWidth: 1,
                             borderBottomEndRadius: 5,
@@ -120,11 +121,14 @@ const Task = ({
                         }}>{priority}</Text>
 
                     </View>
-                    <Text style={{ fontSize: 12, fontFamily: "Kavivanar" }}>{description}</Text>
+                    <Text style={{ fontSize: 12, fontFamily: "Kavivanar", width: "80%" }}>{description}</Text>
                     <View style={{ flexDirection: "row", marginTop: 10 }}>
                         <Text style={{ fontSize: 8, color: Colors.dark.secondary, textAlignVertical: "bottom", marginHorizontal: "auto" }}> {status == "ToDo" && "Double Tap to Complete"}</Text>
                         <View style={{ flexDirection: "row", gap: 25 }}>
-                            <TouchableOpacity onPress={() => navigation.navigate('EditTask', { id })}>
+                            <TouchableOpacity onPress={() => {
+                                setEditTaskOpen({ isOpen: true, id })
+                            }}>
+                                {/* navigation.navigate('EditTask', { id }) */}
                                 <FontAwesome6 name="pen-to-square" size={21} color={Colors.light.background2} />
                             </TouchableOpacity>
                             <TouchableOpacity onPress={handleTaskDelete}>

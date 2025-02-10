@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
-import { router, Stack, useLocalSearchParams, useNavigation, useRouter } from 'expo-router';
+import { router, Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
 import CheckBox from '@react-native-community/checkbox';
 
@@ -24,19 +24,22 @@ import { en, registerTranslation } from 'react-native-paper-dates'
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 import { getTasksByDate, updateTaskById } from '@/db/taskDb';
-import { useRoute } from '@react-navigation/native';
-import { MaterialIcons } from '@expo/vector-icons';
+import { CommonActions, StackActions, useNavigation, useRoute } from '@react-navigation/native';
+import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
+import { BottomTabNavProps } from '@/interfaces/types';
 registerTranslation('en', en)
 
+interface EditTaskProps {
+  isOpen: boolean,
+  id: string
+}
 
 
 const EditTaskScreen = () => {
-  const route = useRoute();
-
-  const { id } = route.params as { id: string };
-  const { tasks, setTasks, setLoading } = useGlobalContext();
+  const { tasks, setTasks, setLoading, setEditTaskOpen, editTaskOpen } = useGlobalContext();
   const [tasksError, setTasksError] = useState<string>("");
+  const navigation = useNavigation<BottomTabNavProps>();
 
   const [data, setData] = useState<CreateTaskProps>(
     {
@@ -50,7 +53,7 @@ const EditTaskScreen = () => {
   );
 
   useEffect(() => {
-    const selectedTask = searchTaskById(id, tasks);
+    const selectedTask = searchTaskById(editTaskOpen.id, tasks);
     setData((prevData) => ({
       ...prevData,
       title: selectedTask[0].title,
@@ -70,44 +73,45 @@ const EditTaskScreen = () => {
   };
 
   const handleSubmit = () => {
-    updateTaskById(id.toString(), data)
-
+    updateTaskById(editTaskOpen.id.toString(), data)
+    setLoading(true);
     const fetchTasks = async () => {
-
       const response = await getTasksByDate(data.date);
       if (response.success && response.data) {
         setTasks(response.data);
+        setLoading(false);
       } else {
         setTasksError(response.message || 'An error occurred while fetching tasks.');
+        setLoading(false);
       }
-
     };
-
-
     fetchTasks();
 
-    router.push("/")
+    setEditTaskOpen({ isOpen: false, id: "" })
   };
 
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: Colors.light.background }}>
+    <ScrollView style={{ width: "100%", height: "100%", position: "absolute", backgroundColor: Colors.light.background, zIndex: 10 }}>
       <View style={styles.container}>
         <View style={{ backgroundColor: Colors.light.secondary2, width: "90%", marginHorizontal: "5%", padding: 10, borderRadius: 16, marginTop: 20, }}>
-
-          <Text style={styles.label}>Edit Taks</Text>
+          <View style={{ flexDirection: "row" }}>
+            <Text style={styles.label}>Edit Tak</Text>
+            <TouchableOpacity onPress={() => setEditTaskOpen({ isOpen: false, id: "" })}>
+              <FontAwesome name="close" size={34} color={Colors.light.primary} /></TouchableOpacity>
+          </View>
           <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
             <TextInput
               style={{
                 ...styles.input,
                 backgroundColor: Colors.light.secondary,
-                padding: 15,
+                paddingLeft: 15,
                 borderRadius: 16,
-                width: "45%"
+                width: "45%", height: 50,
               }}
               value={data.title}
               onChangeText={(value) => handleChanges("title", value)}
-              placeholder="Enter task title"
+              placeholder="Task title"
             />
             <View style={{ borderRadius: 16, borderWidth: 1, backgroundColor: '#a8232300', width: "45%", height: 50 }}>
               <Picker
@@ -164,7 +168,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.secondary,
   },
   label: {
-
+    width: "90%",
     height: 70,
     fontSize: 30,
     fontFamily: 'Pacifico',

@@ -17,19 +17,19 @@ import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 
 // Db
 import { createTask, getTasksByDate } from '@/db/taskDb';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Colors } from '@/constants/Colors';
 import { useFonts } from 'expo-font';
 import { MaterialIcons } from '@expo/vector-icons';
 import { TextStyle } from 'react-native';
+import navigation from '@react-navigation/native';
+import { BottomTabNavProps } from '@/interfaces/types';
 
-// interface HomeScreenProps {
-//     navigation: any;
-// }
 
 const CreateTaskTab = () => {
     const route = useRoute();
-    const { day, setTasks } = useGlobalContext();
+    const { day, loading, setTasks, setLoading, setDay } = useGlobalContext();
+    const navigation = useNavigation<BottomTabNavProps>();
 
     const [data, setData] = useState<CreateTaskProps>(
         {
@@ -49,18 +49,6 @@ const CreateTaskTab = () => {
         }))
     }, [day])
 
-    // useEffect(() => {
-    //     const fetchTasks = async () => {
-    //         const response = await getTasksByDate(day);
-    //         if (response.success && response.data) {
-    //             setTasks(response.data);
-    //         } else {
-    //             console.log(response.message || 'An error occurred while fetching tasks.');
-    //         }
-    //     };
-    //     fetchTasks();
-    // }, [day])
-
     const handleChanges = (key: keyof CreateTaskProps, value: string | Date) => {
         setData((prevData) => ({
             ...prevData,
@@ -69,25 +57,30 @@ const CreateTaskTab = () => {
     };
 
     const onSubmit = async () => {
-        createTask(data)
-        const fetchTasks = async () => {
-            const response = await getTasksByDate(day);
-            if (response.success && response.data) {
-                setTasks(response.data);
-            } else {
-                console.log(response.message || 'An error occurred while fetching tasks.');
-            }
-        };
-        fetchTasks();
-
-        router.push("/")
+        setLoading(true);
+        createTask(data).then(() => {
+            navigation.navigate("HomeTab");
+            setLoading(false);
+        }).catch((error) => {
+            console.log(error);
+        });
     };
 
     return (
         <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
             <View style={styles.container} >
-                <View style={{ backgroundColor: Colors.light.secondary2, width: "90%", margin: "auto" }}>
-                    <Text style={styles.label}>Create Task </Text>
+                <View style={{ backgroundColor: Colors.light.secondary2, width: "90%", margin: "auto", elevation: 5 }}>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 10, marginTop: 10 }}>
+                        <Text style={styles.label}>Create Task </Text>
+                        <Text style={{
+                            fontSize: 16
+                            , fontFamily: "Kavivanar"
+                            , textAlign: "center"
+                            , color: Colors.light.background2,
+                            backgroundColor: Colors.light.primary,
+                            height: 30, paddingHorizontal: 5,
+                        }}>{day}</Text>
+                    </View>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginHorizontal: 10, marginBottom: 10 }}>
                         <TextInput
                             style={{ ...styles.input, fontFamily: "Kavivanar", textAlignVertical: "bottom", backgroundColor: Colors.light.secondary, width: "55%", padding: 15, borderRadius: 16 }}
@@ -162,3 +155,7 @@ const styles = StyleSheet.create({
 });
 
 export default CreateTaskTab;
+
+function setLoading(arg0: boolean) {
+    throw new Error('Function not implemented.');
+}

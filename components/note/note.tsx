@@ -25,10 +25,11 @@ import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@/interfaces/types'; // Importa el tipo de rutas
+import { useGlobalContext } from '@/context/GlobalProvider';
 
 
 const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite, onNoteDelete }: NoteProps) => {
-    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+    const { setEditNoteOpen } = useGlobalContext();
 
     return (
         <View style={{ marginRight: 15 }}>
@@ -40,7 +41,7 @@ const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite, onNoteDelet
                 backgroundColor: Colors.light.primaryDark,
                 marginHorizontal: 5,
                 padding: 10,
-                elevation: 5, // Para Android
+                elevation: 5,
                 shadowColor: 'rgba(0, 0, 0, 1)', // Para iOS
                 shadowOffset: { width: 1, height: 1 },
                 shadowOpacity: 0.5,
@@ -87,7 +88,7 @@ const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite, onNoteDelet
             }}>
                 <Favorite isFavorite={isFavorite} id={id} />
 
-                <TouchableOpacity onPress={() => navigation.navigate('EditNote', { id })}>
+                <TouchableOpacity onPress={() => setEditNoteOpen({ isOpen: true, id })}>
                     <FontAwesome6 name="pen-to-square" size={24} color={Colors.dark.secondary} />
                 </TouchableOpacity>
                 <TouchableOpacity onPress={onNoteDelete}>
