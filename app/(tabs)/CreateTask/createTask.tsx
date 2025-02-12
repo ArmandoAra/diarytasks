@@ -5,7 +5,8 @@ import {
     TextInput,
     TouchableOpacity,
     ScrollView,
-    StyleSheet
+    StyleSheet,
+    Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, SplashScreen } from 'expo-router';
@@ -25,22 +26,23 @@ import { TextStyle } from 'react-native';
 import navigation from '@react-navigation/native';
 import { BottomTabNavProps } from '@/interfaces/types';
 
+const initialData = (day: string): CreateTaskProps => {
+    return {
+        id: "",
+        title: '',
+        description: '',
+        status: 'ToDo',
+        priority: 'Low',
+        date: day,
+    }
+}
 
 const CreateTaskTab = () => {
     const route = useRoute();
     const { day, loading, setTasks, setLoading, setDay } = useGlobalContext();
     const navigation = useNavigation<BottomTabNavProps>();
 
-    const [data, setData] = useState<CreateTaskProps>(
-        {
-            id: "",
-            title: '',
-            description: '',
-            status: 'ToDo',
-            priority: 'Low',
-            date: day,
-        }
-    );
+    const [data, setData] = useState<CreateTaskProps>(initialData(day));
 
     useEffect(() => {
         setData((prevData) => ({
@@ -57,10 +59,11 @@ const CreateTaskTab = () => {
     };
 
     const onSubmit = async () => {
-        setLoading(true);
+        if (!data.description) return Alert.alert("Please enter a description", "Description is required");
         createTask(data).then(() => {
+            getTasksByDate(day).then((tasks) => setTasks(tasks.data as CreateTaskProps[]))
+            setData(initialData(day))
             navigation.navigate("HomeTab");
-            setLoading(false);
         }).catch((error) => {
             console.log(error);
         });
@@ -119,9 +122,9 @@ const CreateTaskTab = () => {
                     />
                 </View>
                 <View style={{ width: "100%", flexDirection: "row", height: 50, justifyContent: "flex-end", paddingRight: 20 }}>
-                    <TouchableOpacity onPress={onSubmit} style={{ right: 0, position: "relative" }} >
+                    {data.description && <TouchableOpacity onPress={onSubmit} style={{ right: 0, position: "relative" }} >
                         <MaterialIcons name="assignment-add" size={38} color={Colors.light.background2} />
-                    </TouchableOpacity>
+                    </TouchableOpacity>}
                 </View >
             </View>
         </View>
@@ -131,7 +134,6 @@ const CreateTaskTab = () => {
 
 const styles = StyleSheet.create({
     container: {
-        height: 380,
         width: '90%',
         borderRadius: 19,
         marginTop: 40,

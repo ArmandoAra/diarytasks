@@ -11,8 +11,6 @@ import { formatDateToString } from '@/Utils/helpFunctions';
 
 // Icons
 import Entypo from '@expo/vector-icons/Entypo';
-import { getTasksByDate } from '@/db/taskDb';
-
 
 const TasksContainer = () => {
     const [sortOption, setSortOption] = React.useState<SortOption>("All");
@@ -20,9 +18,6 @@ const TasksContainer = () => {
 
 
     const [sortedTasks, setSortedTasks] = useState<CreateTaskProps[]>(tasks);
-
-
-
 
     useEffect(() => {
         if (sortOption === 'All') {

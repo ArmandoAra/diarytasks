@@ -2,6 +2,7 @@ import * as SQLite from 'expo-sqlite';
 
 import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset'; //Para obtener el Uri de el archivo de la Db
+import { create } from 'react-test-renderer';
 
 
 export const loadDatabase = async () => {
@@ -17,10 +18,14 @@ export const loadDatabase = async () => {
         if (!dbInfo.exists) {
             await FileSystem.makeDirectoryAsync(FileSystem.documentDirectory + 'SQLite/', { intermediates: true });
             await FileSystem.downloadAsync(dbUri, dbDir); // download the db file
-            // await createDatabaseStructure(); //Verificar si esto va aqui
+            await createDatabaseStructure();
         }
+
+        createDatabaseStructure();
+        return { success: true, message: 'Database loaded' };
     } catch (err) {
         console.log(err)
+        return { success: false, message: 'Error loading database' };
     }
 
 }

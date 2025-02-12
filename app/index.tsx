@@ -1,13 +1,11 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { DarkTheme, DefaultTheme, NavigationContainer, useRoute } from '@react-navigation/native';
-import { Text, View, Button, useColorScheme, StyleSheet } from 'react-native';
-import navigation from '@react-navigation/native';
-import { useNavigation, router, SplashScreen, useLocalSearchParams } from 'expo-router';
+import { useColorScheme, StyleSheet } from 'react-native';
+import { SplashScreen } from 'expo-router';
 
 import { SQLiteProvider } from 'expo-sqlite';
-import { GlobalProvider } from '@/context/GlobalProvider';
+import { GlobalProvider, useGlobalContext } from '@/context/GlobalProvider';
 import { ThemeProvider } from '@/context/ThemeProvider';
 import { useFonts } from 'expo-font';
 import { FontAwesome, Fontisto, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
@@ -21,10 +19,10 @@ import FavoritesTab from './(tabs)/Favorites/favorites';
 import MapTab from './(tabs)/Map/map';
 
 //Screens
-import EditNoteScreen from './screens/editNote/[id]';
-import EditTaskScreen from './screens/editTask/[id]';
 import SettingsScreen from './screens/settings/settings';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { createDatabaseStructure, loadDatabase } from '@/db/db';
+import { createUser, getUser } from '@/db/userDb';
+import { set } from 'astro:schema';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -33,18 +31,18 @@ SplashScreen.preventAutoHideAsync();
 // Configuración del Tab Navigator
 const Tab = createBottomTabNavigator();
 const HomeTabs = () => {
-    const colorScheme = useColorScheme();
 
-    const themeStyle = colorScheme === 'light' ? styles.lightTheme : styles.darkTheme;
+
     return (
+
         <Tab.Navigator
             screenOptions={{
                 tabBarStyle: {
                     height: 60,
-                    backgroundColor: themeStyle.backgroundColor,
+                    backgroundColor: Colors.light.background2,
                 },
                 tabBarItemStyle: {
-                    paddingVertical: 10,
+                    paddingVertical: 5,
                     height: 60, // Evita que el espacio del label afecte el ícono
                 },
             }}
@@ -53,7 +51,8 @@ const HomeTabs = () => {
                 name="HomeTab"
                 component={Home}
                 options={{
-                    tabBarLabel: () => null,
+                    tabBarLabel: "Home",
+                    tabBarLabelStyle: { fontFamily: "Kavivanar" },
                     tabBarIcon: ({ color }) => <FontAwesome size={30} name="home" color={color} />,
                     tabBarActiveTintColor: Colors.light.primary,
                     tabBarInactiveTintColor: Colors.light.background,
@@ -64,7 +63,8 @@ const HomeTabs = () => {
                 name="CreateTask"
                 component={CreateTaskTab}
                 options={{
-                    tabBarLabel: () => null,
+                    tabBarLabel: "New Task",
+                    tabBarLabelStyle: { fontFamily: "Kavivanar" },
                     headerShown: false,
                     tabBarIcon: ({ color }) => <MaterialIcons name="assignment-add" size={28} color={color} />,
                     tabBarActiveTintColor: Colors.light.primary,
@@ -75,7 +75,8 @@ const HomeTabs = () => {
                 name="Create Note"
                 component={CreateNoteTab}
                 options={{
-                    tabBarLabel: () => null,
+                    tabBarLabel: "New Note",
+                    tabBarLabelStyle: { fontFamily: "Kavivanar" },
                     headerShown: false,
                     tabBarIcon: ({ color }) => <MaterialIcons name="note-add" size={28} color={color} />,
                     tabBarActiveTintColor: Colors.light.primary,
@@ -86,7 +87,9 @@ const HomeTabs = () => {
                 name="Favorites"
                 component={FavoritesTab}
                 options={{
-                    tabBarLabel: () => null,
+                    tabBarLabel: "Favorites",
+                    // estilo de fuente del label
+                    tabBarLabelStyle: { fontFamily: "Kavivanar" },
                     headerShown: false,
                     tabBarIcon: ({ color }) => <Fontisto name="star" size={25} color={color} />,
                     tabBarActiveTintColor: Colors.light.primary,
@@ -97,7 +100,8 @@ const HomeTabs = () => {
                 name="Map"
                 component={MapTab}
                 options={{
-                    tabBarLabel: () => null, // Ocultar el título
+                    tabBarLabel: "Map",
+                    tabBarLabelStyle: { fontFamily: "Kavivanar" },
                     headerShown: false,
                     tabBarIcon: ({ color }) => (
                         <MaterialCommunityIcons name="calendar-month" size={30} color={color} />
@@ -108,27 +112,25 @@ const HomeTabs = () => {
             />
 
         </Tab.Navigator>
+
     );
 }
 
 // Configuración del Stack Navigator
 const Stack = createStackNavigator();
 const AppNavigator = () => (
+
     <Stack.Navigator>
         {/* Tabs principales */}
         <Stack.Screen name="Home" component={HomeTabs} options={{ headerShown: false }} />
         {/* Pantallas fuera del TabNavigator */}
-        <Stack.Screen name="EditNote" component={EditNoteScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="EditTask" component={EditTaskScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
 );
 
 // Renderizar la navegación en la aplicación
 export default function App() {
-    const colorScheme = useColorScheme();
     const [loaded] = useFonts({
-        "space-mono": require('../assets/fonts/SpaceMono-Regular.ttf'),
         "Pacifico": require('../assets/fonts/Pacifico-Regular.ttf'), // Big titles
         "Kavivanar": require('../assets/fonts/Kavivanar-Regular.ttf'), // Normal Texts
         "Cagliostro": require('../assets/fonts/Cagliostro-Regular.ttf'), // Buttons and Mini titles
@@ -140,9 +142,7 @@ export default function App() {
         }
     }, [loaded]);
 
-    if (!loaded) {
-        return null;
-    }
+
     return (
         <SQLiteProvider databaseName='diaryTasks.db'>
             <GlobalProvider>
@@ -151,16 +151,6 @@ export default function App() {
                 </ThemeProvider>
             </GlobalProvider>
         </SQLiteProvider>
-
     );
 }
 
-
-const styles = StyleSheet.create({
-    lightTheme: {
-        backgroundColor: Colors.dark.secondary,
-    },
-    darkTheme: {
-        backgroundColor: Colors.dark.secondary,
-    },
-});

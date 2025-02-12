@@ -39,7 +39,6 @@ const Task = ({
 }: CreateTaskProps) => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
     const { day, setTasks, setLoading, setEditTaskOpen } = useGlobalContext();
-    const [tasksError, setTasksError] = useState<string>("");
 
 
     // Logica para el doble  tap de la tarea
@@ -48,48 +47,35 @@ const Task = ({
     const handleDoubleTap = async () => {
         const now = Date.now();
         if (now - lastTap < DOUBLE_TAP_DELAY) {
-            setLoading(true);
             const response = await updateTaskStatus(id, status);
             if (response.success) {
-                setLoading(false)
+                getTasksByDate(day).then((tasks) => setTasks(tasks.data as CreateTaskProps[]))
+
             } else {
                 alert('Something went wrong updating the task status');
-                setLoading(false)
             }
         }
         setLastTap(now);
     };
 
-
-
     const handleTaskDelete = async () => {
         const deleteTask = async () => {
             const response = await deleteTaskById(id);
             if (response.success && response.data) {
-                const response = await getAllTasks();
+                // getTasksByDate(day).then((tasks) => setTasks(tasks.data as CreateTaskProps[]))
             } else {
                 return response.error
             }
-
         }
 
-        const fetchTasks = async () => {
-            const response = await getTasksByDate(day);
-            if (response.success && response.data) {
-                setTasks(response.data);
-            } else {
-                setTasksError(response.message || 'An error occurred while fetching tasks.');
-            }
-        };
-
         deleteTask();
-        fetchTasks();
-        console.log(`Task ${id} Eliminada correctamente`)
+        getTasksByDate(day).then((tasks) => setTasks(tasks.data as CreateTaskProps[]))
+
     }
 
     return (
         <Pressable onPress={handleDoubleTap} style={{
-            marginTop: 14,
+            marginTop: 15,
             borderBottomColor: Colors.text.textDark,
             borderBottomWidth: 1,
             borderBottomStartRadius: 13,
@@ -105,10 +91,9 @@ const Task = ({
                             width: "80%",
                             fontFamily: "Cagliostro",
                             borderBottomWidth: 1,
-                            borderBottomEndRadius: 5,
-                            borderBottomRightRadius: 5,
+                            borderStyle: "dashed",
                             borderColor: Colors.text.textDark,
-                        }}>{title}</Text>
+                        }}>{title.toLocaleUpperCase()}</Text>
 
                         <Text style={{
                             fontSize: 10,

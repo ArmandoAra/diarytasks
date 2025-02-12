@@ -20,6 +20,7 @@ import { getMonthNumber } from '@/Utils/helpFunctions';
 import { getSortedDaysWithNotesAndTasks } from '@/db/mapDb';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { Colors } from '@/constants/Colors';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface SortedDataProps {
     date: string;
@@ -57,7 +58,17 @@ const MapTab = () => {
     );
 
     if (!daysWithData || daysWithData.length === 0) {
-        return <Text style={{ textAlign: "center", marginTop: 20 }}>No hay datos disponibles</Text>;
+        return <Text style={{
+            textAlign: "center",
+            textAlignVertical: "center",
+            fontSize: 30,
+            fontFamily: "Pacifico",
+            flex: 1,
+            backgroundColor: Colors.light.secondary,
+            color: Colors.light.background2
+        }}>
+            No data available
+        </Text>;
     }
 
     const groupedByYearAndMonth = daysWithData.reduce((acc, data) => {
@@ -89,8 +100,8 @@ const MapTab = () => {
                         justifyContent: 'center',
                         alignItems: 'center',
                         marginTop: 10,
-                        marginHorizontal: 10,
-                        width: "92%",
+                        marginHorizontal: "auto",
+                        width: "95%",
                         backgroundColor: Colors.light.secondary,
                         borderRadius: 16,
                         overflow: "hidden",
@@ -111,7 +122,7 @@ const MapTab = () => {
                         {/* Meses */}
                         {Object.entries(months).map(([month, days]) => (
                             <View key={month} style={{
-                                marginVertical: 10,
+                                marginVertical: 1,
                                 width: "100%",
                             }}>
                                 {/* Nombre del Mes */}
@@ -147,7 +158,6 @@ const MapTab = () => {
                                                     elevation: 5
                                                 }}
                                                 onPress={() => {
-
                                                     handleNavigate(`${day.toString() + "-" + getMonthNumber(month)?.toString() + "-" + year.toString()}`)
                                                 }}
                                             >

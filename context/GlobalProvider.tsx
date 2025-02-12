@@ -18,6 +18,7 @@ interface EditProps {
 interface GlobalContextProps {
     user: User;
     loading: boolean;
+    dbLoaded: boolean;
     day: string;
     editTaskOpen: EditProps;
     editNoteOpen: EditProps;
@@ -25,6 +26,7 @@ interface GlobalContextProps {
     dayNotes: CreateNoteProps[];
     setUser: React.Dispatch<React.SetStateAction<User>>;
     setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+    setDbLoaded: React.Dispatch<React.SetStateAction<boolean>>;
     setDay: React.Dispatch<React.SetStateAction<string>>;
     setEditTaskOpen: React.Dispatch<React.SetStateAction<EditProps>>;
     setEditNoteOpen: React.Dispatch<React.SetStateAction<EditProps>>;
@@ -39,6 +41,7 @@ const GlobalContext = createContext<GlobalContextProps>({
         name: ""
     },
     loading: true,
+    dbLoaded: false,
     day: '',
     editTaskOpen: {
         isOpen: false,
@@ -52,6 +55,7 @@ const GlobalContext = createContext<GlobalContextProps>({
     dayNotes: [],
     setUser: () => { },
     setLoading: () => { },
+    setDbLoaded: () => { },
     setDay: () => { },
     setEditTaskOpen: () => { },
     setEditNoteOpen: () => { },
@@ -70,6 +74,7 @@ interface GlobalProviderProps {
 export const GlobalProvider: FC<GlobalProviderProps> = ({ children }) => {
 
     const [loading, setLoading] = useState<boolean>(false);
+    const [dbLoaded, setDbLoaded] = useState<boolean>(false);
     const [user, setUser] = useState<User>({ id: "", name: "" });
     const [day, setDay] = useState<string>(formatDate(new Date()));
     const [tasks, setTasks] = useState<CreateTaskProps[]>([])
@@ -83,6 +88,7 @@ export const GlobalProvider: FC<GlobalProviderProps> = ({ children }) => {
             value={{
                 user,
                 loading,
+                dbLoaded,
                 day,
                 editTaskOpen,
                 editNoteOpen,
@@ -93,6 +99,7 @@ export const GlobalProvider: FC<GlobalProviderProps> = ({ children }) => {
                 setEditTaskOpen,
                 setEditNoteOpen,
                 setLoading,
+                setDbLoaded,
                 setTasks,
                 setDayNotes,
             }}

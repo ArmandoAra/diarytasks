@@ -14,8 +14,9 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      }
+        "backgroundColor": "#CD818E"
+      },
+      "package": "com.armandara.diarytasks"
     },
     "web": {
       "bundler": "metro",
@@ -57,12 +58,20 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#8BA6A6"
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "7fef06b1-4ccd-41a9-b44e-0a3e80216d99"
+      }
     }
   }
 }

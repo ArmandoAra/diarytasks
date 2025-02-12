@@ -1,5 +1,6 @@
 
 import * as SQLite from 'expo-sqlite';
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 interface User {
     id: string;
@@ -11,19 +12,15 @@ interface User {
 // Insert User
 export async function createUser(
     name: string,
-    setUser: React.Dispatch<React.SetStateAction<User>>,
-    setLoading: React.Dispatch<React.SetStateAction<boolean>>) {
+) {
     const db = await SQLite.openDatabaseAsync('diaryTasks.db');
 
     try {
-        setLoading(true)
         const result = await db.getAllAsync<{ name: string }>(`SELECT name FROM User WHERE name = ?`, [name])
-
         if (result.length === 0) {
             // Si no existe el usuario, entonces lo inserta
-            await db.runAsync('INSERT INTO User (name) VALUES (?)', [name])
+            await db.runAsync('INSERT INTO User (name) VALUES (?)', [name]);
         }
-        setLoading(false)
     }
     catch (error) {
         console.log('Error CreatingUser', error)
@@ -57,8 +54,8 @@ export async function updateUser(
             setLoading(false)
             return { success: true, message: 'User updated successfully' };
         } else {
-            console.log('No User found with the specified ID');
-            return { success: false, message: 'No User found with the specified ID' };
+            createUser(name)
+            return { success: false, message: 'No User found with the specified ID, New user created  ' };
         }
     } catch (error) {
         console.log('Error updating User:', error);
@@ -67,22 +64,18 @@ export async function updateUser(
 }
 
 
-export async function getUser(
-    setUser: React.Dispatch<React.SetStateAction<{ name: string, id: string }>>,
-    setLoading: React.Dispatch<React.SetStateAction<boolean>>
-) {
+export async function getUser(): Promise<string> {
     const db = await SQLite.openDatabaseAsync('diaryTasks.db');
     try {
         const result = await db.getAllAsync<{ name: string, id: number }>('SELECT name,id FROM User')
         if (result.length == 0) {
-            console.log(result)
-            createUser("Unknow", setUser, setLoading)
-            return "no user";
+            createUser("Unknow")
+            return JSON.stringify({ name: "Unknow", id: "1" })
         } else {
-            setUser({ name: result[0].name, id: result[0].id.toString() })
-            // return JSON.stringify(result[0].id)
+            return JSON.stringify({ name: result[0].name, id: result[0].id.toString() })
         }
     } catch (error) {
         console.log('Error getting user on GetUser')
+        return "Error getting user"
     }
 }

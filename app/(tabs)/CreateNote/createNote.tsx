@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,11 +6,10 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Alert,
 } from 'react-native';
-import { router } from 'expo-router';
 
 // Components
-import Favorite from '@/components/favoriteToggle/favToggle';
 
 // Styles
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
@@ -22,7 +21,7 @@ import Svg, { Line } from 'react-native-svg';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavProps } from '@/interfaces/types';
 
-const initialNoteData = (day: string) => {
+const initialNoteData = (day: string): CreateNoteProps => {
   return {
     id: '',
     title: '',
@@ -30,13 +29,11 @@ const initialNoteData = (day: string) => {
     isFavorite: 0,
     date: day,
   }
-
 }
 
 
 const CreateNoteTab = () => {
   const { day, setDayNotes, setLoading, setDay, loading } = useGlobalContext();
-  const [notesError, setNotesError] = useState<string>('');
   const [note, setNote] = useState<CreateNoteProps>(initialNoteData(day));
   const navigation = useNavigation<BottomTabNavProps>();
 
@@ -48,22 +45,17 @@ const CreateNoteTab = () => {
   };
 
   const handleSubmit = () => {
-    setLoading(true);
+    if (!note.message) return Alert.alert("Message is required", "Please enter a message for the note.");
     createNote(note)
       .then(() => {
-        setLoading(false);
+        getNotesByDate(day).then((notes) => setDayNotes(notes.data as CreateNoteProps[]))
+        setNote(initialNoteData(day))
         navigation.navigate("HomeTab");
       })
       .catch((error) => {
         console.log(error);
-        setLoading(false);
       });
-
   };
-
-  useEffect(() => {
-    setNote(initialNoteData(day))
-  }, [day, loading])
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: Colors.light.background }}>
@@ -146,9 +138,9 @@ const CreateNoteTab = () => {
         </View>
 
         <View style={{ width: "100%", flexDirection: "row", height: 60, justifyContent: "flex-end", paddingTop: 10, paddingRight: 20 }}>
-          <TouchableOpacity onPress={handleSubmit} style={{ right: 0, position: "relative" }} >
+          {note.message && <TouchableOpacity onPress={handleSubmit} style={{ right: 0, position: "relative" }} >
             <MaterialIcons name="note-add" size={38} color={Colors.light.background2} />
-          </TouchableOpacity>
+          </TouchableOpacity>}
         </View>
       </View>
     </ScrollView>

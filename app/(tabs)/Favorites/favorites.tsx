@@ -42,12 +42,13 @@ const FavoritesTab = () => {
 
     useFocusEffect(
         useCallback(() => {
-            fetchFavoritesNotes(setFavoritesNotes).then(() => setLoading(false));
+            getFavoritesNotes().then((favoriteNotes) => {
+                setFavoritesNotes(favoriteNotes.data as CreateNoteProps[]);
+            })
         }, [])
     );
 
     const handleFavoriteToggle = async (id: string) => {
-        console.log("update")
         setLoading(true)
         updateFavorite(id, 0).then(() => {
             const newFavoritesNotes = favoritesNotes.filter(note => note.id !== id);

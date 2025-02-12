@@ -46,15 +46,15 @@ const EditNoteScreen = () => {
   const [notesError, setNotesError] = useState<string>("");
   const navigation = useNavigation<BottomTabNavProps>();
 
-  const [data, setData] = useState<CreateNoteProps>(
-    {
-      id: "",
-      title: '',
-      message: '',
-      isFavorite: 0,
-      date: '',
-    }
-  );
+  const initialData = {
+    id: "",
+    title: '',
+    message: '',
+    isFavorite: 0,
+    date: '',
+  }
+
+  const [data, setData] = useState<CreateNoteProps>(initialData);
 
   useEffect(() => {
     const selectedNote = searchNoteById(editNoteOpen.id, dayNotes);
@@ -75,26 +75,13 @@ const EditNoteScreen = () => {
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (!data.message) return Alert.alert("Message is required", "Please enter a message for the note.");
+
     updateNoteById(editNoteOpen.id.toString(), data)
-
-    const fetchTasks = async () => {
-      const response = await getNotesByDate(data.date);
-      if (response.success && response.data) {
-        setDayNotes(response.data);
-      } else {
-        setNotesError(response.message || 'An error occurred while fetching tasks.');
-      }
-    };
-
-
-    fetchTasks();
-
+    getNotesByDate(data.date).then((notes) => setDayNotes(notes.data as CreateNoteProps[]))
     setEditNoteOpen({ isOpen: false, id: "" })
   };
-
-
-
 
   return (
     <View style={{ width: "100%", height: "100%", zIndex: 10, backgroundColor: Colors.light.background }}>
@@ -169,9 +156,9 @@ const EditNoteScreen = () => {
 
         {/* Botón de acción flotante */}
         <View style={{ width: "100%", flexDirection: "row", height: 60, justifyContent: "flex-end", paddingTop: 10, paddingRight: 20 }}>
-          <TouchableOpacity onPress={handleSubmit} style={{ right: 0, position: "relative" }} >
+          {data.message && <TouchableOpacity onPress={handleSubmit} style={{ right: 0, position: "relative" }} >
             <MaterialIcons name="note-add" size={38} color={Colors.light.background2} />
-          </TouchableOpacity>
+          </TouchableOpacity>}
         </View>
       </View>
     </View>

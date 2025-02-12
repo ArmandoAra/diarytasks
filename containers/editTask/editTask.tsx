@@ -8,6 +8,7 @@ import {
   Button,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { router, Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
@@ -73,6 +74,9 @@ const EditTaskScreen = () => {
   };
 
   const handleSubmit = () => {
+    if (!data.description) {
+      return Alert.alert("Message is required", "Please enter a message for the task.");
+    }
     updateTaskById(editTaskOpen.id.toString(), data)
     setLoading(true);
     const fetchTasks = async () => {
@@ -146,9 +150,9 @@ const EditTaskScreen = () => {
         </View>
 
         <View style={{ width: "100%", flexDirection: "row", height: 60, justifyContent: "flex-end", paddingRight: 20, marginTop: 20 }}>
-          <TouchableOpacity onPress={handleSubmit} style={{ right: 0, position: "relative" }} >
+          {data.description && <TouchableOpacity onPress={handleSubmit} style={{ right: 0, position: "relative" }} >
             <MaterialIcons name="assignment-add" size={38} color={Colors.light.background2} />
-          </TouchableOpacity>
+          </TouchableOpacity>}
         </View>
       </View>
     </ScrollView >

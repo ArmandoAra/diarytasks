@@ -26,8 +26,10 @@ import Header from '@/components/header/header';
 import navigation from '@react-navigation/native';
 import { formatDate } from '@/Utils/helpFunctions';
 import use from 'react';
-import EditTaskScreen from '../editTask/[id]';
-import EditNoteScreen from '../editNote/[id]';
+import EditTaskScreen from '@/containers/editTask/editTask';
+import EditNoteScreen from '@/containers/editNote/editNote';
+import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
+import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 
 interface HomeProps {
     navigation: any;
@@ -36,13 +38,14 @@ interface HomeProps {
 const today = formatDate(new Date());
 
 const Home: React.FC<HomeProps> = ({ navigation }) => {
-    const [dbLoaded, setDbLoaded] = useState<boolean>(false);
 
     const {
+        dbLoaded,
         user,
         day,
         editNoteOpen,
         editTaskOpen,
+        setDbLoaded,
         setEditNoteOpen,
         setEditTaskOpen,
         setUser,
@@ -54,40 +57,41 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
 
     useEffect(() => {
         loadDatabase()
-            .then(() => {
-                setDbLoaded(true);
-                createDatabaseStructure();
+            .then((res) => {
+                if (res.success) {
+                    getUser().then((us) => {
+                        const userData = JSON.parse(us);
+                        setUser({ name: userData.name, id: userData.id });
+                    });
+                    setDbLoaded(true);
+                }
             })
-            .catch((error) => console.log(error));
-        getUser(setUser, setLoading)
     }, []);
 
-    useEffect(() => {
-        const fetchTasks = async () => {
-            const response = await getTasksByDate(day);
-            if (response.success && response.data) {
-                setTasks(response.data);
-            } else {
-                console.log(response.message || 'An error occurred while fetching tasks.');
-            }
-        };
-
-        fetchTasks();
-
-    }, [day, loading]);
 
     useEffect(() => {
-        const fetchNotesDay = async () => {
-            const response = await getNotesByDate(day);
-            if (response.success && response.data) {
-                setDayNotes(response.data);
-            } else {
-                console.log(response.message || 'An error occurred while fetching notes.');
-            }
-        };
-        fetchNotesDay();
-        setLoading(false);
-    }, [day, loading]);
+        getTasksByDate(day)
+            .then((tasks) => {
+                setTasks(Array.isArray(tasks.data) ? tasks.data : []); // Asegurar que es un array
+            })
+            .catch((error) => {
+                console.error("Error retrieving tasks:", error);
+                setTasks([]); // Evita el error en el map()
+            });
+
+        getNotesByDate(day)
+            .then((notes) => {
+                setDayNotes(Array.isArray(notes.data) ? notes.data : []); // Asegurar que es un array
+            })
+            .catch((error) => {
+                console.error("Error retrieving Notes:", error);
+                setDayNotes([]); // Evita el error en el map()
+            });
+
+    }, [day]);
+
+
+
 
     useEffect(() => {
         const backAction = () => {
@@ -97,11 +101,10 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
                     { text: "YES", onPress: () => BackHandler.exitApp() }
                 ]);
                 return true; // Bloquea el comportamiento por defecto
-            } else {
-                setEditNoteOpen({ isOpen: false, id: "" });
-                setEditTaskOpen({ isOpen: false, id: "" });
-                return true; // Bloquea el comportamiento por defecto
             }
+            setEditNoteOpen({ isOpen: false, id: "" });
+            setEditTaskOpen({ isOpen: false, id: "" });
+            return true; // Bloquea el comportamiento por defecto
         };
 
         // Agregar el evento al presionar el botón de retroceso

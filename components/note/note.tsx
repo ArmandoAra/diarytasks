@@ -31,11 +31,12 @@ import { useGlobalContext } from '@/context/GlobalProvider';
 const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite, onNoteDelete }: NoteProps) => {
     const { setEditNoteOpen } = useGlobalContext();
 
+
     return (
         <View style={{ marginRight: 15 }}>
 
             <ScrollView style={{
-                width: 170,
+                width: 200,
                 height: 172,
                 borderRadius: 16,
                 backgroundColor: Colors.light.primaryDark,
@@ -67,7 +68,7 @@ const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite, onNoteDelet
                     <Text style={{ fontFamily: "Cagliostro", fontSize: 16 }}>{title}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                    <Text style={{ fontFamily: "Kavivanar", fontSize: 12, marginBottom: 12, lineHeight: 22.1 }} >{message}</Text>
+                    <Text style={{ fontFamily: "Kavivanar", fontSize: 12, marginBottom: 12, lineHeight: 22.1, width: "85%" }} >{message}</Text>
                 </View>
             </ScrollView>
             <View style={{

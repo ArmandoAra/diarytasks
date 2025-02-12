@@ -1,31 +1,35 @@
 import { Colors } from "@/constants/Colors"
 import { useGlobalContext } from "@/context/GlobalProvider"
-import { FontAwesome, Ionicons, MaterialCommunityIcons, Octicons } from "@expo/vector-icons"
+import { FontAwesome, Ionicons, Octicons } from "@expo/vector-icons"
 import { TouchableOpacity, View, Text, TextInput, StyleSheet } from "react-native"
 
 // Db
 import { createUser, updateUser } from "@/db/userDb";
 import { useState } from "react";
+import { useNavigation } from '@react-navigation/native';
+import { BottomTabNavProps } from "@/interfaces/types";
 
 const SettingsScreen = () => {
     const { user, setUser, setLoading } = useGlobalContext()
     const [newUser, setNewUser] = useState<string>(user.name);
+    const navigation = useNavigation<BottomTabNavProps>();
 
     const handleChanges = (value: string) => {
         setNewUser(value)
     }
 
-    const onClose = (newUser: string) => {
+    const onSave = (newUser: string) => {
         if (user.name != newUser) {
             try {
                 updateUser(user.id, newUser, setUser, setLoading)
             } catch (error) {
                 if (error) {
-                    createUser(newUser, setUser, setLoading)
+                    createUser(newUser)
                 }
                 console.log(error)
             }
         }
+        navigation.navigate("Home")
     }
 
     return (
@@ -40,31 +44,38 @@ const SettingsScreen = () => {
                 zIndex: 10,
                 borderRadius: 16
             }}>
-                <Text style={{ textAlign: "center", fontSize: 36, fontFamily: "Pacifico" }}>Settings</Text>
+                <View style={{ flexDirection: "row", marginHorizontal: 20, marginTop: 20 }}>
+                    <Text style={{ textAlign: "center", fontSize: 36, fontFamily: "Pacifico", width: "90%" }}>Settings</Text>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate("Home")}
+                    >
+                        <FontAwesome name="close" size={34} color={Colors.light.primary} />
+                    </TouchableOpacity>
+                </View>
 
 
                 <View style={{ flexDirection: "row", marginHorizontal: "auto", marginTop: 30, width: "80%" }}>
                     <View style={{
-                        flexDirection: "row", marginHorizontal: "auto", height: 40
+                        flexDirection: "row", marginHorizontal: "auto"
 
                     }}>
                         <Text style={{ fontSize: 20, textAlignVertical: "center", fontFamily: "Kavivanar" }}> Hi,</Text>
-                        <View style={{ height: "100%", borderBottomWidth: 2, borderBottomColor: "black", borderStartEndRadius: 75 }}>
+                        <View style={{ flexDirection: "row" }}>
                             <TextInput
                                 onChangeText={(value) => handleChanges(value)}
                                 value={newUser}
                                 placeholder={user.name}
                                 style={{
-                                    fontSize: 20, fontFamily: "Kavivanar", height: "100%", paddingTop: 0, top: 10
+                                    fontSize: 20, fontFamily: "Kavivanar"
                                 }}
                                 maxLength={14}
                                 multiline={false}
-                            /></View>
-                        <View style={{ height: 41.5, justifyContent: "flex-end" }}>
-                            <FontAwesome name="pencil" size={24} color="black" />
-                        </View>
+                            />
+                            <View style={{ height: 35, justifyContent: "flex-end" }}>
+                                <FontAwesome name="pencil" size={24} color="black" />
+                            </View></View>
                         <TouchableOpacity
-                            onPress={() => onClose(newUser)}
+                            onPress={() => onSave(newUser)}
                             style={{ height: 40, backgroundColor: Colors.dark.primary, width: 60, borderRadius: 10, marginLeft: 12 }}>
                             <Text style={{ margin: "auto", fontSize: 14, textAlignVertical: "center", fontFamily: "Kavivanar" }}>Save</Text>
                         </TouchableOpacity>
