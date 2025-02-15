@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useColorScheme, StyleSheet } from 'react-native';
+import { useColorScheme, StyleSheet, Keyboard } from 'react-native';
 import { SplashScreen } from 'expo-router';
 
 import { SQLiteProvider } from 'expo-sqlite';
@@ -13,8 +13,7 @@ import { Colors } from '@/constants/Colors';
 
 // TABS
 import Home from './screens/Home/index';
-import CreateTaskTab from './(tabs)/CreateTask/createTask'
-import CreateNoteTab from './(tabs)/CreateNote/createNote';
+import CreateNoteTab from './(tabs)/Notes/notes';
 import FavoritesTab from './(tabs)/Favorites/favorites';
 import MapTab from './(tabs)/Map/map';
 
@@ -22,7 +21,7 @@ import MapTab from './(tabs)/Map/map';
 import SettingsScreen from './screens/settings/settings';
 import { createDatabaseStructure, loadDatabase } from '@/db/db';
 import { createUser, getUser } from '@/db/userDb';
-import { set } from 'astro:schema';
+import { StatesProvider } from '@/context/StatesProvider';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -32,18 +31,27 @@ SplashScreen.preventAutoHideAsync();
 const Tab = createBottomTabNavigator();
 const HomeTabs = () => {
 
+    const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+    useEffect(() => {
+        const showSubscription = Keyboard.addListener("keyboardDidShow", () => setIsKeyboardVisible(true));
+        const hideSubscription = Keyboard.addListener("keyboardDidHide", () => setIsKeyboardVisible(false));
+
+        return () => {
+            showSubscription.remove();
+            hideSubscription.remove();
+        };
+    }, []);
+
 
     return (
 
         <Tab.Navigator
             screenOptions={{
-                tabBarStyle: {
-                    height: 60,
-                    backgroundColor: Colors.light.background2,
-                },
+                tabBarStyle: isKeyboardVisible ? { display: "none" } : { height: 60, backgroundColor: Colors.light.background2 },
                 tabBarItemStyle: {
                     paddingVertical: 5,
-                    height: 60, // Evita que el espacio del label afecte el ícono
+                    height: 60,
                 },
             }}
         >
@@ -59,23 +67,12 @@ const HomeTabs = () => {
                     headerShown: false,
                 }}
             />
+
             <Tab.Screen
-                name="CreateTask"
-                component={CreateTaskTab}
-                options={{
-                    tabBarLabel: "New Task",
-                    tabBarLabelStyle: { fontFamily: "Kavivanar" },
-                    headerShown: false,
-                    tabBarIcon: ({ color }) => <MaterialIcons name="assignment-add" size={28} color={color} />,
-                    tabBarActiveTintColor: Colors.light.primary,
-                    tabBarInactiveTintColor: Colors.light.secondary,
-                }}
-            />
-            <Tab.Screen
-                name="Create Note"
+                name="Notes"
                 component={CreateNoteTab}
                 options={{
-                    tabBarLabel: "New Note",
+                    tabBarLabel: "Day Notes",
                     tabBarLabelStyle: { fontFamily: "Kavivanar" },
                     headerShown: false,
                     tabBarIcon: ({ color }) => <MaterialIcons name="note-add" size={28} color={color} />,
@@ -145,11 +142,13 @@ export default function App() {
 
     return (
         <SQLiteProvider databaseName='diaryTasks.db'>
-            <GlobalProvider>
-                <ThemeProvider>
-                    <AppNavigator />
-                </ThemeProvider>
-            </GlobalProvider>
+            <ThemeProvider>
+                <GlobalProvider>
+                    <StatesProvider>
+                        <AppNavigator />
+                    </StatesProvider>
+                </GlobalProvider>
+            </ThemeProvider>
         </SQLiteProvider>
     );
 }

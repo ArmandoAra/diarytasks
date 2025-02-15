@@ -8,6 +8,7 @@ import { useGlobalContext } from '@/context/GlobalProvider';
 
 // Icons
 import Fontisto from '@expo/vector-icons/Fontisto';
+import { useStatesContext } from '@/context/StatesProvider';
 
 interface IFavToggleProps {
     id: string;
@@ -15,7 +16,8 @@ interface IFavToggleProps {
 }
 
 const Favorite = ({ id, isFavorite }: IFavToggleProps) => {
-    const { setLoading, day, setDayNotes } = useGlobalContext();
+    const { day, setDayNotes } = useGlobalContext();
+    const { setLoading } = useStatesContext();
     const [favError, setFavError] = useState("");
 
     const handleFavoriteToggle = (fav: number) => {

@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Button, Pressable, TextStyle } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Button, Pressable, TextStyle, TextInput, Alert, SafeAreaView, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, Platform } from 'react-native';
 import Task from '../../components/task/task'; // Ajusta la ruta según tu proyecto
 
 import { useGlobalContext } from '@/context/GlobalProvider';
@@ -11,10 +11,19 @@ import { formatDateToString } from '@/Utils/helpFunctions';
 
 // Icons
 import Entypo from '@expo/vector-icons/Entypo';
+import { useThemeContext } from '@/context/ThemeProvider';
+import { AntDesign } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
+import { createTask, getTasksByDate } from '@/db/taskDb';
+import { CreateNewTask } from '../createTask/createTask';
+
+
 
 const TasksContainer = () => {
     const [sortOption, setSortOption] = React.useState<SortOption>("All");
-    const { tasks, day, setTasks, loading } = useGlobalContext();
+    const { tasks, day } = useGlobalContext();
+    const { theme } = useThemeContext();
+
 
 
     const [sortedTasks, setSortedTasks] = useState<CreateTaskProps[]>(tasks);
@@ -33,51 +42,148 @@ const TasksContainer = () => {
         <View
             style={{
                 width: "96%",
-                borderTopLeftRadius: 26,
-                borderRadius: 16,
+                flex: 1,
+                borderTopLeftRadius: 16,
+                borderTopRightRadius: 16,
+                marginTop: 2,
+
                 overflow: "hidden",
                 marginHorizontal: "auto",
-                height: "54%",
-                backgroundColor: Colors.light.secondary
+                backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.secondary,
             }}>
-            <View style={{ width: "100%", margin: "auto", height: "10%", backgroundColor: Colors.light.secondary }}>
-                <Text style={{ fontSize: 18, fontFamily: "Kavivanar", margin: "auto" }}>{formatDateToString(day)}</Text>
+            <View
+                style={{
+                    width: "100%",
+                    height: 50,
+                    backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.secondary,
+                }}>
+                <Text style={{
+                    fontSize: 18,
+                    fontFamily: "Kavivanar",
+                    margin: "auto",
+                    color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
+                }}>{formatDateToString(day)}</Text>
             </View >
             {/* Select para ordenar */}
             <View style={{
                 flexDirection: "row",
+                height: 50,
                 justifyContent: "space-around",
-                height: "10%",
-                width: "100%",
-                borderBottomColor: "black",
+                borderBottomColor: theme === "light" ? Colors.dark.primary : Colors.light.primary,
                 borderBottomWidth: 1,
-                alignItems: "center"
+                alignItems: "center",
             }}>
-                <TouchableOpacity style={{ width: "33%", flexDirection: "row", gap: 4 }} onPress={() => setSortOption("All")} >
+                <TouchableOpacity style={{ width: 100, flexDirection: "row", gap: 4 }} onPress={() => setSortOption("All")} >
                     <View style={{ width: "15%", height: "auto" }}>
-                        {sortOption == "All" && <Entypo name="bookmark" size={24} color={Colors.light.background2} />}
+                        {sortOption == "All" && <Entypo name="bookmark" size={24} color={theme == "light" ? Colors.light.background2 :
+                            Colors.dark.background
+                        } />}
                     </View>
-                    <Text style={[styles.textButton, { width: "85%" }, sortOption === "All" ? styles.textButtonActive : styles.textButtonInactive]}>
+                    <Text
+                        style={[
+                            {
+                                fontSize: 12,
+                                textAlignVertical: "center",
+                                fontFamily: "Cagliostro",
+                                textAlign: "center",
+                                width: "85%",
+                                color: theme === "light" ? Colors.text.textDark : Colors.text.textLight,
+                            },
+                            sortOption === "All" ? {
+                                borderBottomWidth: 1,
+                                borderLeftWidth: 1,
+                                borderRightWidth: 1,
+                                borderColor: theme === "light" ? Colors.dark.primary : Colors.light.primary,
+                                borderRadius: 10
+                            } : {
+                                borderBottomWidth: 2,
+                                borderLeftWidth: 1,
+                                borderRightWidth: 1,
+                                borderColor: theme === "light" ? Colors.dark.secondary : Colors.light.secondary,
+                                borderRadius: 10
+                            }
+                        ]}
+                    >
                         All Tasks
                     </Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={{ width: "33%", flexDirection: "row", gap: 4 }} onPress={() => setSortOption("Completed")}  >
+
+                <TouchableOpacity style={{ width: 100, flexDirection: "row", gap: 4 }} onPress={() => setSortOption("Completed")}  >
                     <View style={{ width: "15%", height: "auto" }}>
-                        {sortOption == "Completed" && <Entypo name="bookmark" size={24} color={Colors.light.background2} />}
+                        {sortOption == "Completed" && <Entypo name="bookmark" size={24} color={theme == "light" ? Colors.light.background2 :
+                            Colors.dark.background
+                        } />}
                     </View>
-                    <Text style={[styles.textButton, { width: "85%" }, sortOption === "Completed" ? styles.textButtonActive : styles.textButtonInactive]} >Completed</Text>
+                    <Text
+                        style={[
+                            {
+                                fontSize: 12,
+                                textAlignVertical: "center",
+                                fontFamily: "Cagliostro",
+                                textAlign: "center",
+                                width: "85%",
+                                color: theme === "light" ? Colors.text.textDark : Colors.text.textLight,
+                            },
+                            sortOption === "Completed" ? {
+                                borderBottomWidth: 1,
+                                borderLeftWidth: 1,
+                                borderRightWidth: 1,
+                                borderColor: theme === "light" ? Colors.dark.primary : Colors.light.primary,
+                                borderRadius: 10
+                            } : {
+                                borderBottomWidth: 2,
+                                borderLeftWidth: 1,
+                                borderRightWidth: 1,
+                                borderColor: theme === "light" ? Colors.dark.secondary : Colors.light.secondary,
+                                borderRadius: 10
+                            }
+                        ]} >
+                        Completed</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={{ width: "33%", flexDirection: "row", gap: 5 }} onPress={() => setSortOption("ToDo")}  >
+
+                <TouchableOpacity style={{ width: 100, flexDirection: "row", gap: 5 }} onPress={() => setSortOption("ToDo")}  >
                     <View style={{ width: "15%", height: "auto" }}>
-                        {sortOption == "ToDo" && <Entypo name="bookmark" size={24} color={Colors.light.background2} />}
+                        {sortOption == "ToDo" && <Entypo name="bookmark" size={24} color={theme == "light" ? Colors.light.background2 :
+                            Colors.dark.primaryLight
+                        } light />}
                     </View>
-                    <Text style={[styles.textButton, { width: "65%" }, sortOption === "ToDo" ? styles.textButtonActive : styles.textButtonInactive]} >To Do</Text>
+                    <Text
+                        style={[
+                            {
+                                fontSize: 12,
+                                textAlignVertical: "center",
+                                fontFamily: "Cagliostro",
+                                textAlign: "center",
+                                width: "85%",
+                                color: theme === "light" ? Colors.text.textDark : Colors.text.textLight,
+                            },
+                            sortOption === "ToDo" ? {
+                                borderBottomWidth: 1,
+                                borderLeftWidth: 1,
+                                borderRightWidth: 1,
+                                borderColor: theme === "light" ? Colors.dark.primary : Colors.light.primary,
+                                borderRadius: 10
+                            } : {
+                                borderBottomWidth: 2,
+                                borderLeftWidth: 1,
+                                borderRightWidth: 1,
+                                borderColor: theme === "light" ? Colors.dark.secondary : Colors.light.secondary,
+                                borderRadius: 10
+                            }
+                        ]} >To Do</Text>
                 </TouchableOpacity>
+
             </View>
             {/* <TornPaperButton /> */}
 
             {/* Lista de tareas */}
-            <ScrollView style={{ paddingHorizontal: 5, backgroundColor: Colors.light.secondary2 }} >
+
+            <ScrollView
+                style={{
+                    paddingHorizontal: 5,
+                    paddingVertical: 10,
+                    backgroundColor: theme == "light" ? Colors.light.secondary2 : Colors.dark.background,
+                }} >
                 {sortedTasks.map(task => (
                     <Task
                         key={task.id}
@@ -89,71 +195,15 @@ const TasksContainer = () => {
                         date={task.date || ""}
                     />
                 ))}
+                <CreateNewTask />
 
             </ScrollView>
         </View>
     )
 };
 
-const styles = StyleSheet.create({
-    textButton: {
-        fontSize: 12,
-        textAlignVertical: "center",
-        fontFamily: "Cagliostro",
-        textAlign: "center",
-    }, textButtonActive: {
-        borderBottomWidth: 1,
-        borderLeftWidth: 1,
-        borderRightWidth: 1,
-        borderColor: Colors.dark.primary,
-        borderRadius: 10
-    }, textButtonInactive: {
-        borderBottomWidth: 2,
-        borderLeftWidth: 1,
-        borderRightWidth: 1,
-        borderColor: Colors.dark.secondary,
-        borderRadius: 10
-    }
-});
-
-const stylesDrop = StyleSheet.create({
-    container: {
-        backgroundColor: 'white',
-        padding: 16,
-    },
-    dropdown: {
-        height: 50,
-        borderColor: 'gray',
-        borderWidth: 0.5,
-        borderRadius: 8,
-        paddingHorizontal: 8,
-    },
-    icon: {
-        marginRight: 5,
-    },
-    label: {
-        position: 'absolute',
-        backgroundColor: 'white',
-        left: 22,
-        top: 8,
-        zIndex: 999,
-        paddingHorizontal: 8,
-        fontSize: 14,
-    },
-    placeholderStyle: {
-        fontSize: 16,
-    },
-    selectedTextStyle: {
-        fontSize: 16,
-    },
-    iconStyle: {
-        width: 20,
-        height: 20,
-    },
-    inputSearchStyle: {
-        height: 40,
-        fontSize: 16,
-    },
-});
-
 export default TasksContainer;
+
+
+
+

@@ -20,9 +20,13 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@/interfaces/types'; // Importa el tipo de rutas
+import DayChangerContainer from '@/containers/dayChanger/dayChangerContainer';
+import { useThemeContext } from '@/context/ThemeProvider';
 
 const Header = () => {
-    const { user, day, setDay, setLoading } = useGlobalContext();
+    const { user, day, setDay } = useGlobalContext();
+    const { theme } = useThemeContext();
+
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
     //Single Date Picker
@@ -41,7 +45,6 @@ const Header = () => {
 
 
     const handleDayNavigate = (to: "back" | "today" | "next") => {
-        setLoading(true)
         switch (to) {
             case "back":
                 let backDay = getBackDay(day);
@@ -61,86 +64,60 @@ const Header = () => {
 
 
     return (
-        <View style={{ height: "20%" }}>
-            <View style={{ height: "67%", paddingLeft: 30, backgroundColor: Colors.light.primary, }} >
-                <View style={{ flexDirection: "row", width: "100%", justifyContent: "space-between" }}>
-                    <Text style={{ textAlignVertical: "bottom", fontSize: 32, fontFamily: "Pacifico", color: Colors.text.textDark }} >Diary Tasks</Text>
-                    <TouchableOpacity style={{ right: 40, top: 30 }} onPress={() => navigation.navigate('Settings')}>
-                        <Text style={{ color: Colors.text.textDark }}>
+        <View
+            style={{
+                height: 150,
+                backgroundColor: theme == "light" ? Colors.light.secondary2 : Colors.dark.background
+            }} >
+            <View
+                style={{
+                    height: "70%",
+                    paddingLeft: 30,
+                    backgroundColor: theme == "light" ? Colors.light.primary : Colors.dark.primary2
+                }} >
+                <View
+                    style={{
+                        width: "100%",
+                        flexDirection: "row",
+                        justifyContent: "space-between"
+                    }}>
+                    <Text
+                        style={{
+                            textAlignVertical: "bottom",
+                            fontSize: 32,
+                            fontFamily: "Pacifico",
+                            color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
+                        }} >
+                        Diary Tasks
+                    </Text>
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('Settings')}
+                        style={{
+                            right: 40,
+                            top: 30
+                        }}>
+                        <Text
+                            style={{
+                                color: theme == "light" ? Colors.text.textDark : Colors.text.textLight
+                            }}>
                             <Ionicons name="settings-outline" size={34} />
                         </Text>
                     </TouchableOpacity>
                 </View>
-                <Text style={{ textAlignVertical: "bottom", fontSize: 20, fontFamily: "Kavivanar", color: Colors.text.textDark }}>{`Hi, ${user.name}`}</Text>
-
-            </View>
-
-
-            {/* Botón Select Day */}
-            <View style={{ flexDirection: "row", justifyContent: "space-around", paddingHorizontal: 10, height: "20%", marginVertical: 10 }}>
-                <TouchableOpacity onPress={() => setOpen(true)} >
-                    <Text style={{
-                        fontFamily: "Cagliostro",
-                        textAlign: "center",
-                        textAlignVertical: "center",
-                        width: 100,
-                        height: "100%",
-                        borderColor: Colors.text.textDark,
-                        borderBottomWidth: 2,
-                        borderLeftWidth: 1,
-                        borderRightWidth: 1,
-                        borderRadius: 16,
+                <Text
+                    style={{
+                        textAlignVertical: "bottom",
+                        fontSize: 20,
+                        fontFamily: "Kavivanar",
                         color: Colors.text.textDark
-                    }}>Selecte Day</Text>
-
-                </TouchableOpacity>
-                <DatePickerModal
-                    saveLabel='Go to'
-                    locale="en"
-                    mode="single"
-                    visible={open}
-                    onDismiss={onDismiss}
-                    date={date}
-                    onConfirm={onConfirm}
-                />
-                <View style={{ flexDirection: "row", gap: 10 }}>
-                    <TouchableOpacity onPress={() => handleDayNavigate("back")} style={{
-                        width: 40,
-                        alignItems: "center",
-                        borderColor: Colors.text.textDark,
-                        borderBottomWidth: 2,
-                        borderLeftWidth: 1,
-                        borderRightWidth: 1,
-                        borderRadius: 16
                     }}>
-                        <Ionicons name="arrow-undo-outline" size={24} color="black" />
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleDayNavigate("today")} style={{
-                        width: 70,
-                        alignItems: "center",
-                        borderColor: Colors.text.textDark,
-                        borderBottomWidth: 2,
-                        borderLeftWidth: 1,
-                        borderRightWidth: 1,
-                        borderRadius: 16
-                    }}>
-                        <Text style={{ fontFamily: "Cagliostro", margin: "auto", color: Colors.text.textDark }}>Today</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleDayNavigate("next")} style={{
-                        width: 40,
-                        alignItems: "center",
-                        borderColor: Colors.text.textDark,
-                        borderBottomWidth: 2,
-                        borderLeftWidth: 1,
-                        borderRightWidth: 1,
-                        borderRadius: 16
-                    }}>
-                        <Ionicons name="arrow-redo-outline" size={24} color="black" />
-                    </TouchableOpacity>
-                </View>
+                    {`Hi, ${user.name}`}
+                </Text>
             </View>
+            <DayChangerContainer />
         </View>
     )
-}
+};
+
 
 export default Header;

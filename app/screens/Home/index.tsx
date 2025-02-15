@@ -1,59 +1,34 @@
-import { StyleSheet, Text, Image, ActivityIndicator, Dimensions, ScrollView, View, TouchableOpacity, Pressable, BackHandler, Alert, StatusBar, Platform, DrawerLayoutAndroid, Button } from 'react-native';
-import { Link, Redirect, router } from 'expo-router';
+import { View, BackHandler, Alert, StatusBar, SafeAreaView } from 'react-native';
+import { useEffect } from 'react';
 
-import { useEffect, useRef, useState } from 'react';
 
 import { Colors } from '@/constants/Colors';
 
-
 // Icons
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { AntDesign, FontAwesome6 } from '@expo/vector-icons';
-
 
 //DB
-import { createDatabaseStructure, loadDatabase } from '@/db/db';
-import { createUser, getUser } from '@/db/userDb';
+import { loadDatabase } from '@/db/db';
+import { getUser } from '@/db/userDb';
 import { useGlobalContext } from '@/context/GlobalProvider';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import AppDrawer from '@/components/drawer/drawer';
 import Loader from '@/components/loader/loader';
 import { getNotesByDate } from '@/db/noteDb';
 import { getTasksByDate } from '@/db/taskDb';
-import NotesContainer from '@/containers/notesContainer/notesContainer';
 import TasksContainer from '@/containers/tasksContainer/tasks';
 import Header from '@/components/header/header';
-import navigation from '@react-navigation/native';
-import { formatDate } from '@/Utils/helpFunctions';
-import use from 'react';
 import EditTaskScreen from '@/containers/editTask/editTask';
 import EditNoteScreen from '@/containers/editNote/editNote';
-import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
-import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
+import { useStatesContext } from '@/context/StatesProvider';
+import { DeletingPopUp } from '@/components/delete/deletingPopUp';
+import use from 'react';
+import { de } from 'react-native-paper-dates';
 
 interface HomeProps {
     navigation: any;
 }
 
-const today = formatDate(new Date());
-
-const Home: React.FC<HomeProps> = ({ navigation }) => {
-
-    const {
-        dbLoaded,
-        user,
-        day,
-        editNoteOpen,
-        editTaskOpen,
-        setDbLoaded,
-        setEditNoteOpen,
-        setEditTaskOpen,
-        setUser,
-        setLoading,
-        setDay,
-        setTasks,
-        loading,
-        setDayNotes, } = useGlobalContext();
+const Home: React.FC<HomeProps> = () => {
+    const { day, setUser, setTasks, setDayNotes, } = useGlobalContext();
+    const { dbLoaded, editNoteOpen, editTaskOpen, setDbLoaded, setEditNoteOpen, setEditTaskOpen, deletingOpen, setLoading, loading } = useStatesContext();
 
     useEffect(() => {
         loadDatabase()
@@ -72,26 +47,25 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
     useEffect(() => {
         getTasksByDate(day)
             .then((tasks) => {
-                setTasks(Array.isArray(tasks.data) ? tasks.data : []); // Asegurar que es un array
+                setTasks(Array.isArray(tasks.data) ? tasks.data : []);
             })
             .catch((error) => {
                 console.error("Error retrieving tasks:", error);
-                setTasks([]); // Evita el error en el map()
+                setTasks([]);
             });
 
         getNotesByDate(day)
             .then((notes) => {
-                setDayNotes(Array.isArray(notes.data) ? notes.data : []); // Asegurar que es un array
+                setDayNotes(Array.isArray(notes.data) ? notes.data : []);
             })
             .catch((error) => {
                 console.error("Error retrieving Notes:", error);
-                setDayNotes([]); // Evita el error en el map()
+                setDayNotes([]);
             });
 
-    }, [day]);
+        setLoading(false);
 
-
-
+    }, [day, loading]);
 
     useEffect(() => {
         const backAction = () => {
@@ -118,14 +92,13 @@ const Home: React.FC<HomeProps> = ({ navigation }) => {
         <>
             <StatusBar translucent backgroundColor={Colors.light.primary} barStyle={'light-content'} />
             {editTaskOpen.isOpen && <EditTaskScreen />}
-            {editNoteOpen.isOpen && <EditNoteScreen />}
+            {(deletingOpen.isOpen && deletingOpen.type == "Task") && <DeletingPopUp />}
             {!dbLoaded
                 ? <Loader />
                 :
-                <View style={{ backgroundColor: Colors.light.background }}>
+                <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
                     <Header />
                     <TasksContainer />
-                    <NotesContainer />
                 </View>
             }
         </>

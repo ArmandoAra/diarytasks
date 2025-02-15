@@ -24,3 +24,7 @@ eas build -p android --profile preview
   -Acabada de instalar la app debe tener ya el usuario por defecto
 
 El color verde que tengo en las configuraciones es el que sale en el fondo cuando abro la app ya instalada
+
+★ eas-cli@15.0.9 is now available.
+To upgrade, run npm install -g eas-cli.
+Proceeding with outdated version.

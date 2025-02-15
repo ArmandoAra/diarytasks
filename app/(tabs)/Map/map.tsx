@@ -20,11 +20,12 @@ import { getMonthNumber } from '@/Utils/helpFunctions';
 import { getSortedDaysWithNotesAndTasks } from '@/db/mapDb';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { Colors } from '@/constants/Colors';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useStatesContext } from '@/context/StatesProvider';
 
 interface SortedDataProps {
     date: string;
     allTasksCompleted: boolean;
+    haveTask: boolean;
     haveNote: boolean;
     day: string;
     month: string;
@@ -34,20 +35,21 @@ interface SortedDataProps {
 const fetchAllDaysWithData = async (setDaysWithData: React.Dispatch<React.SetStateAction<SortedDataProps[]>>) => {
     try {
         const result = await getSortedDaysWithNotesAndTasks();
-        setDaysWithData(result)
+        setDaysWithData(result);
     } catch (error) {
         console.log("Error fetching all Days with data and notes line 30 map.tsx")
     }
 };
 
 const MapTab = () => {
-    const { setDay, day } = useGlobalContext();
+    const { setDay } = useGlobalContext();
     const [daysWithData, setDaysWithData] = useState<SortedDataProps[]>([]);
-    const { setLoading } = useGlobalContext();
+    const { setLoading } = useStatesContext();
     const navigation = useNavigation<BottomTabNavProps>();
 
-    const handleNavigate = (day: string) => {
+    const handleNavigate = (day: string, haveTask: boolean) => {
         setDay(day)
+        if (!haveTask) return navigation.navigate("Notes");
         navigation.navigate("HomeTab")
     }
 
@@ -147,7 +149,7 @@ const MapTab = () => {
                                 }}>
                                     {days
                                         .sort((a, b) => Number(a.day) - Number(b.day)) // Ordenar días
-                                        .map(({ day, haveNote, allTasksCompleted }) => (
+                                        .map(({ day, haveNote, allTasksCompleted, haveTask }) => (
                                             <TouchableOpacity
                                                 key={day}
                                                 style={{
@@ -158,7 +160,7 @@ const MapTab = () => {
                                                     elevation: 5
                                                 }}
                                                 onPress={() => {
-                                                    handleNavigate(`${day.toString() + "-" + getMonthNumber(month)?.toString() + "-" + year.toString()}`)
+                                                    handleNavigate(`${day.toString() + "-" + getMonthNumber(month)?.toString() + "-" + year.toString()}`, haveTask)
                                                 }}
                                             >
                                                 {haveNote &&

@@ -32,8 +32,8 @@ const initialNoteData = (day: string): CreateNoteProps => {
 }
 
 
-const CreateNoteTab = () => {
-  const { day, setDayNotes, setLoading, setDay, loading } = useGlobalContext();
+const NotesTab = () => {
+  const { day, setDayNotes } = useGlobalContext();
   const [note, setNote] = useState<CreateNoteProps>(initialNoteData(day));
   const navigation = useNavigation<BottomTabNavProps>();
 
@@ -187,4 +187,4 @@ const stylesSvg = StyleSheet.create({
   },
 });
 
-export default CreateNoteTab;
+export default NotesTab;

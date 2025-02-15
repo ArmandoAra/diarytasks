@@ -10,11 +10,15 @@ import Note from '../../components/note/note';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { deleteNoteById, getNotesByDate } from '@/db/noteDb';
 import { Colors } from '@/constants/Colors';
+import { useStatesContext } from '@/context/StatesProvider';
 
 
 
 const NotesContainer = () => {
-    const { day, dayNotes, setDayNotes, loading, setLoading } = useGlobalContext();
+    const { day, dayNotes, setDayNotes } = useGlobalContext();
+    const { setLoading } = useStatesContext();
+
+
     const [notesError, setNotesError] = useState<string>('');
     const [noteToDelete, setNoteToDelete] = useState<string>('');
 

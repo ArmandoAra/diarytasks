@@ -3,44 +3,30 @@ import {
   View,
   Text,
   TextInput,
-  Switch,
   StyleSheet,
-  Button,
   TouchableOpacity,
   ScrollView,
   Alert,
 } from 'react-native';
-import { router, Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Picker } from '@react-native-picker/picker';
-import CheckBox from '@react-native-community/checkbox';
-
 
 // Utils
 import { searchTaskById } from '@/Utils/helpFunctions';
 
 // Date Picker
-import { Button as PickerButton } from 'react-native-paper';
-import { DatePickerModal } from 'react-native-paper-dates';
 import { en, registerTranslation } from 'react-native-paper-dates'
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 import { getTasksByDate, updateTaskById } from '@/db/taskDb';
-import { CommonActions, StackActions, useNavigation, useRoute } from '@react-navigation/native';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
-import { BottomTabNavProps } from '@/interfaces/types';
+import { useStatesContext } from '@/context/StatesProvider';
 registerTranslation('en', en)
 
-interface EditTaskProps {
-  isOpen: boolean,
-  id: string
-}
-
-
 const EditTaskScreen = () => {
-  const { tasks, setTasks, setLoading, setEditTaskOpen, editTaskOpen } = useGlobalContext();
+  const { tasks, setTasks } = useGlobalContext();
+  const { setLoading, setEditTaskOpen, editTaskOpen } = useStatesContext();
   const [tasksError, setTasksError] = useState<string>("");
-  const navigation = useNavigation<BottomTabNavProps>();
 
   const [data, setData] = useState<CreateTaskProps>(
     {

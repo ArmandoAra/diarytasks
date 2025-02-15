@@ -11,7 +11,6 @@ export interface NoteProps {
     title: string;
     message: string;
     isFavorite: number;
-    onNoteDelete?: (event: GestureResponderEvent) => void;
 }
 
 // Styles
@@ -20,23 +19,17 @@ import Favorite from '../favoriteToggle/favToggle';
 import { Link, router } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { FontAwesome6, Ionicons } from '@expo/vector-icons';
-
-//Navigation
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '@/interfaces/types'; // Importa el tipo de rutas
-import { useGlobalContext } from '@/context/GlobalProvider';
+import { useStatesContext } from '@/context/StatesProvider';
 
 
-const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite, onNoteDelete }: NoteProps) => {
-    const { setEditNoteOpen } = useGlobalContext();
+const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite }: NoteProps) => {
+    const { setEditNoteOpen, setDeletingOpen } = useStatesContext();
 
 
     return (
-        <View style={{ marginRight: 15 }}>
-
-            <ScrollView style={{
-                width: 200,
+        <View style={{ width: '46%', margin: 4, }}>
+            <View style={{
+                width: "100%",
                 height: 172,
                 borderRadius: 16,
                 backgroundColor: Colors.light.primaryDark,
@@ -47,7 +40,7 @@ const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite, onNoteDelet
                 shadowOffset: { width: 1, height: 1 },
                 shadowOpacity: 0.5,
                 shadowRadius: 2,
-
+                overflow: "hidden",
             }}>
                 {/* Note Background */}
                 <View style={stylesSvg.background}>
@@ -70,7 +63,7 @@ const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite, onNoteDelet
                 <View style={{ flex: 1 }}>
                     <Text style={{ fontFamily: "Kavivanar", fontSize: 12, marginBottom: 12, lineHeight: 22.1, width: "85%" }} >{message}</Text>
                 </View>
-            </ScrollView>
+            </View>
             <View style={{
                 gap: 20,
                 position: "absolute",
@@ -92,7 +85,7 @@ const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite, onNoteDelet
                 <TouchableOpacity onPress={() => setEditNoteOpen({ isOpen: true, id })}>
                     <FontAwesome6 name="pen-to-square" size={24} color={Colors.dark.secondary} />
                 </TouchableOpacity>
-                <TouchableOpacity onPress={onNoteDelete}>
+                <TouchableOpacity onPress={() => setDeletingOpen({ isOpen: true, id, type: "Note" })}>
                     <Text ><Ionicons name="trash-bin" size={24} color={Colors.dark.secondary} /></Text>
                 </TouchableOpacity>
             </View>

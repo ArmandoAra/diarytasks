@@ -6,7 +6,6 @@ import {
     Pressable,
 } from 'react-native';
 // Styles
-import { styles } from './styles';
 
 // Interfaces
 import { CreateTaskProps } from '../../interfaces/TasksInterfaces';
@@ -25,9 +24,8 @@ import FontAwesome6 from '@expo/vector-icons/FontAwesome6';
 import { StatusIcon } from '@/Utils/renderIcons';
 
 //Navigation
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '@/interfaces/types'; // Importa el tipo de rutas
+import { useThemeContext } from '@/context/ThemeProvider';
+import { useStatesContext } from '@/context/StatesProvider';
 
 const Task = ({
     id,
@@ -37,8 +35,10 @@ const Task = ({
     date,
     status
 }: CreateTaskProps) => {
-    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
-    const { day, setTasks, setLoading, setEditTaskOpen } = useGlobalContext();
+    const { day, setTasks } = useGlobalContext();
+    const { setEditTaskOpen, setDeletingOpen } = useStatesContext();
+    const { theme } = useThemeContext();
+
 
 
     // Logica para el doble  tap de la tarea
@@ -58,72 +58,95 @@ const Task = ({
         setLastTap(now);
     };
 
-    const handleTaskDelete = async () => {
-        const deleteTask = async () => {
-            const response = await deleteTaskById(id);
-            if (response.success && response.data) {
-                // getTasksByDate(day).then((tasks) => setTasks(tasks.data as CreateTaskProps[]))
-            } else {
-                return response.error
-            }
-        }
-
-        deleteTask();
-        getTasksByDate(day).then((tasks) => setTasks(tasks.data as CreateTaskProps[]))
-
-    }
-
     return (
-        <Pressable onPress={handleDoubleTap} style={{
-            marginTop: 15,
-            borderBottomColor: Colors.text.textDark,
-            borderBottomWidth: 1,
-            borderBottomStartRadius: 13,
-            borderBottomEndRadius: 28
-        }}>
+        <Pressable
+            onPress={handleDoubleTap}
+            style={{
+                marginVertical: 5,
+                padding: 5,
+                borderRadius: 16,
+                backgroundColor: theme == "light" ? Colors.light.background : Colors.dark.primary,
+                elevation: 5
+            }}
+        >
+            {/* First Line */}
+            <View
+                style={{
+                    flexDirection: "row",
+                    width: "100%",
+                    justifyContent: "space-between"
+                }} >
+                <View style={{ flexDirection: "row", gap: 10 }}>
+                    <Text>{StatusIcon(status)}</Text>
+                    <Text style={{
+                        fontFamily: "Kavivanar",
+                        color: theme == "light" ? Colors.text.textDark : Colors.text.textLight
+                    }}>
+                        {title.toLocaleUpperCase()}
+                    </Text>
+                </View>
+                <Text
+                    style={{
+                        fontFamily: "Kavivanar",
+                        color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
+                        backgroundColor: priorityColorHandler(priority),
+                    }}>
+                    {priority}
+                </Text>
+            </View>
+            {/*Second Line  */}
+
+            <Text style={{
+                padding: 5,
+                fontFamily: "Kavivanar",
+                color: theme == "light" ? Colors.text.textDark : Colors.text.textLight
+            }}>{description}</Text>
+
+
             <View style={{ flexDirection: "row" }}>
-                <Text style={{ width: "10%" }}>{StatusIcon(status)} </Text>
-
-                <View style={{ justifyContent: "space-between", width: "85%" }}>
-                    <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                        <Text style={{
-                            fontSize: 14,
-                            width: "80%",
-                            fontFamily: "Cagliostro",
-                            borderBottomWidth: 1,
-                            borderStyle: "dashed",
-                            borderColor: Colors.text.textDark,
-                        }}>{title.toLocaleUpperCase()}</Text>
-
-                        <Text style={{
-                            fontSize: 10,
-                            backgroundColor: priorityColorHandler(priority),
-                            height: 20,
-                            textAlignVertical: "center",
-                            paddingHorizontal: 5,
-                            opacity: 0.5,
+                <Text
+                    style={{
+                        textAlign: "center",
+                        width: "100%",
+                        fontFamily: "Kavivanar",
+                        fontSize: 10,
+                        opacity: 0.7
+                    }}>{status == "ToDo" && "Double Tap to Complete"}</Text>
+                <View style={{ flexDirection: "row", position: "absolute", right: 0, bottom: -10, gap: 16 }}>
+                    <TouchableOpacity
+                        onPress={() => setEditTaskOpen({ isOpen: true, id })}
+                        style={{
+                            backgroundColor: theme == "light" ? Colors.light.primaryDark : Colors.dark.primaryLight,
+                            width: 36,
+                            height: 36,
+                            justifyContent: "center",
+                            alignItems: "center",
                             borderRadius: 16
-                        }}>{priority}</Text>
-
-                    </View>
-                    <Text style={{ fontSize: 12, fontFamily: "Kavivanar", width: "80%" }}>{description}</Text>
-                    <View style={{ flexDirection: "row", marginTop: 10 }}>
-                        <Text style={{ fontSize: 8, color: Colors.dark.secondary, textAlignVertical: "bottom", marginHorizontal: "auto" }}> {status == "ToDo" && "Double Tap to Complete"}</Text>
-                        <View style={{ flexDirection: "row", gap: 25 }}>
-                            <TouchableOpacity onPress={() => {
-                                setEditTaskOpen({ isOpen: true, id })
-                            }}>
-                                {/* navigation.navigate('EditTask', { id }) */}
-                                <FontAwesome6 name="pen-to-square" size={21} color={Colors.light.background2} />
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={handleTaskDelete}>
-                                <Text ><Ionicons name="trash-bin" size={24} color={Colors.light.background2} /></Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
+                        }}>
+                        <FontAwesome6 name="pen-to-square" size={21} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => {
+                            setDeletingOpen({ isOpen: true, id, type: "Task" }
+                            )
+                        }}
+                        style={{
+                            backgroundColor: theme == "light" ? Colors.light.primaryDark : Colors.dark.primaryLight,
+                            width: 36,
+                            height: 36,
+                            justifyContent: "center",
+                            alignItems: "center",
+                            borderRadius: 16
+                        }}>
+                        <Text>
+                            <Ionicons name="trash-bin" size={24} />
+                        </Text>
+                    </TouchableOpacity>
                 </View>
             </View>
-        </Pressable >
+
+        </Pressable>
+
     );
 };
 

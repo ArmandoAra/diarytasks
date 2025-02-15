@@ -36,13 +36,15 @@ import { Colors } from "@/constants/Colors";
 import Svg, { Line } from 'react-native-svg';
 import navigation from '@react-navigation/native';
 import { BottomTabNavProps } from '@/interfaces/types';
+import { useStatesContext } from '@/context/StatesProvider';
 registerTranslation('en', en)
 
 
 
 const EditNoteScreen = () => {
 
-  const { dayNotes, setDayNotes, setEditNoteOpen, editNoteOpen } = useGlobalContext();
+  const { dayNotes, setDayNotes } = useGlobalContext();
+  const { setEditNoteOpen, editNoteOpen } = useStatesContext();
   const [notesError, setNotesError] = useState<string>("");
   const navigation = useNavigation<BottomTabNavProps>();
 
@@ -98,7 +100,7 @@ const EditNoteScreen = () => {
           {/* Encabezado con título y botón de favorito */}
           <View style={{ flexDirection: "row", justifyContent: 'space-around', alignItems: 'center' }}>
             <Text style={styles.label}>Edit Note</Text>
-            <TouchableOpacity onPress={() => handleChanges("isFavorite", data.isFavorite == 1 ? 0 : 1)}>
+            <TouchableOpacity onPress={() => handleChanges("isFavorite", data.isFavorite == 1 ? "0" : "1")}>
               {data.isFavorite == 0 ? (
                 <Fontisto name="heart-alt" size={24} color="red" />
               ) : (

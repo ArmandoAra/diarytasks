@@ -1,4 +1,4 @@
-import React, { forwardRef, HtmlHTMLAttributes, useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
     View,
     Text,
@@ -11,20 +11,17 @@ import {
     BackHandler,
     Alert,
 } from 'react-native';
-import { router, useFocusEffect, useNavigation } from 'expo-router';
-import { Picker } from '@react-native-picker/picker';
+import { useFocusEffect } from 'expo-router';
 
 //interfaces
-import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
-import { formatDate } from '@/Utils/helpFunctions';
-import { createTask, getTasksByDate } from '@/db/taskDb';
-import { useGlobalContext } from '@/context/GlobalProvider';
 import { Colors } from '@/constants/Colors';
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
 import { getFavoritesNotes, updateFavorite } from '@/db/noteDb';
 import Svg, { Line } from 'react-native-svg';
 import { Fontisto } from '@expo/vector-icons';
 import Loader from '@/components/loader/loader';
+import { useStatesContext } from '@/context/StatesProvider';
+
 
 
 const fetchFavoritesNotes = async (setFavoritesNotes: React.Dispatch<React.SetStateAction<CreateNoteProps[]>>) => {
@@ -37,7 +34,8 @@ const fetchFavoritesNotes = async (setFavoritesNotes: React.Dispatch<React.SetSt
 };
 
 const FavoritesTab = () => {
-    const { day, setDayNotes, setLoading, loading } = useGlobalContext();
+    const { loading, setLoading } = useStatesContext();
+
     const [favoritesNotes, setFavoritesNotes] = useState<CreateNoteProps[]>([]);
 
     useFocusEffect(

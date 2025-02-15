@@ -5,7 +5,7 @@
 
 export const Colors = {
   text: {
-    textLight: '#E2DFD0',
+    textLight: '#FFE0E0',
     textDark: '#0B192C',
   },
   light: {
@@ -18,8 +18,9 @@ export const Colors = {
     background2: '#003B39',
   },
   dark: {
-    background: '#210000',
-    primary: '#FFC4C4',
+    background: '#422626',
+    primary: '#FFE0E0',
+    primary2: '#1E0000',
     secondary: '#003B39',
     primaryLight: '#BAAA7E',
     primaryDark: '#714300'

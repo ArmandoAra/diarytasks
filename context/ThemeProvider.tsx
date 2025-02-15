@@ -23,8 +23,6 @@ interface ThemeProviderProps {
     children: ReactNode;
 }
 
-
-
 export const ThemeProvider: FC<ThemeProviderProps> = ({ children }) => {
 
     const [loading, setLoading] = useState<boolean>(true);

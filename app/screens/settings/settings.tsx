@@ -1,16 +1,18 @@
 import { Colors } from "@/constants/Colors"
 import { useGlobalContext } from "@/context/GlobalProvider"
 import { FontAwesome, Ionicons, Octicons } from "@expo/vector-icons"
-import { TouchableOpacity, View, Text, TextInput, StyleSheet } from "react-native"
+import { TouchableOpacity, View, Text, TextInput } from "react-native"
 
 // Db
 import { createUser, updateUser } from "@/db/userDb";
 import { useState } from "react";
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavProps } from "@/interfaces/types";
+import { useThemeContext } from "@/context/ThemeProvider";
 
 const SettingsScreen = () => {
-    const { user, setUser, setLoading } = useGlobalContext()
+    const { user, setUser } = useGlobalContext()
+    const { setTheme, theme } = useThemeContext()
     const [newUser, setNewUser] = useState<string>(user.name);
     const navigation = useNavigation<BottomTabNavProps>();
 
@@ -86,24 +88,30 @@ const SettingsScreen = () => {
                     <Text style={{ fontSize: 34, fontFamily: "Pacifico" }}>Change Theme</Text>
                     <View style={{ flexDirection: "row", marginTop: 15, gap: 30 }}>
 
-                        <TouchableOpacity style={styles.themeActive}><Octicons name="sun" size={36} color="black" /></TouchableOpacity>
-                        <TouchableOpacity><Ionicons name="moon-sharp" size={36} color="black" /></TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => setTheme("light")}
+                            style={{
+                                width: "96%",
+                                height: "80%",
+                                borderTopLeftRadius: 16,
+                                borderTopRightRadius: 16,
+                                marginTop: 5,
+                                overflow: "hidden",
+                                marginHorizontal: "auto",
+                                backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.secondary,
+                            }}>
+                            <Octicons name="sun" size={36} color="black" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => setTheme("dark")}
+                        >
+                            <Ionicons name="moon-sharp" size={36} color="black" />
+                        </TouchableOpacity>
                     </View>
                 </View>
             </View >
         </View>
     )
 };
-
-const styles = StyleSheet.create({
-    themeActive: {
-        padding: 10,
-        borderBottomWidth: 1,
-        borderLeftWidth: 1,
-        borderRightWidth: 1,
-        borderColor: Colors.dark.primary,
-        borderRadius: 10
-    }
-})
 
 export default SettingsScreen;

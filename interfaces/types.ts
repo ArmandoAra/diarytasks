@@ -4,8 +4,7 @@ import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 export type BottomTabParamList = {
     Home: undefined;
     HomeTab: undefined;
-    CreateTask: undefined;
-    CreateNote: undefined;
+    Notes: undefined;
     Favorites: undefined;
     Map: undefined;
 };
