@@ -1,6 +1,5 @@
-import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
-import React, { useEffect, useState } from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import React, { } from 'react'
+import { TouchableOpacity, View } from 'react-native'
 
 // db
 import { getNotesByDate, updateFavorite } from '@/db/noteDb';
@@ -18,7 +17,6 @@ interface IFavToggleProps {
 const Favorite = ({ id, isFavorite }: IFavToggleProps) => {
     const { day, setDayNotes } = useGlobalContext();
     const { setLoading } = useStatesContext();
-    const [favError, setFavError] = useState("");
 
     const handleFavoriteToggle = (fav: number) => {
         setLoading(true)
@@ -28,13 +26,12 @@ const Favorite = ({ id, isFavorite }: IFavToggleProps) => {
             if (response.success && response.data) {
                 setDayNotes(response.data);
             } else {
-                setFavError('An error occurred while fetching notes.');
+                console.log('An error occurred while fetching notes.');
             }
         };
 
         fetchNotesDay();
-        setLoading(false)
-    }
+    };
 
     return (
         <View>

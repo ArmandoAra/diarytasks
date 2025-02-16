@@ -1,24 +1,22 @@
-import React from 'react'
-import { View, TouchableOpacity, Text } from 'react-native'
-import { Ionicons } from '@expo/vector-icons'
-import { DatePickerModal } from 'react-native-paper-dates'
+import React from 'react';
+import { View, TouchableOpacity, Text } from 'react-native';
+import { DatePickerModal } from 'react-native-paper-dates';
+import { Ionicons } from '@expo/vector-icons';
 
-import { Colors } from '@/constants/Colors'
-import { useGlobalContext } from '@/context/GlobalProvider'
-import { formatDate, getBackDay, getNextDay } from '@/Utils/helpFunctions'
-import { useThemeContext } from '@/context/ThemeProvider'
-import { useStatesContext } from '@/context/StatesProvider'
+import { Colors } from '@/constants/Colors';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import { formatDate, getBackDay, getNextDay } from '@/Utils/helpFunctions';
+import { useThemeContext } from '@/context/ThemeProvider';
+import { useStatesContext } from '@/context/StatesProvider';
 
 const DayChangerContainer = () => {
     const { day, setDay } = useGlobalContext();
     const { setLoading } = useStatesContext();
     const { theme } = useThemeContext();
 
-
     //Single Date Picker
     const [date, setDate] = React.useState(new Date());
     const [open, setOpen] = React.useState(false);
-
 
     const onDismiss = React.useCallback(() => {
         setOpen(false);
@@ -58,9 +56,10 @@ const DayChangerContainer = () => {
                 paddingVertical: 5,
                 paddingHorizontal: 10,
                 justifyContent: "space-around",
-                backgroundColor: theme == "light" ? Colors.light.secondary2 : Colors.dark.background,
+                backgroundColor: theme == "light" ? Colors.light.background : Colors.dark.background2
             }}>
-            <TouchableOpacity onPress={() => setOpen(true)} >
+            <TouchableOpacity
+                onPress={() => setOpen(true)} >
                 <Text style={{
                     width: 100,
                     height: "100%",
@@ -73,7 +72,9 @@ const DayChangerContainer = () => {
                     borderRadius: 16,
                     borderColor: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
                     color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
-                }}>Selecte Day</Text>
+                }}>
+                    Selecte Day
+                </Text>
 
             </TouchableOpacity>
             <DatePickerModal
@@ -116,7 +117,9 @@ const DayChangerContainer = () => {
                             fontFamily: "Cagliostro",
                             margin: "auto",
                             color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
-                        }}>Today</Text>
+                        }}>
+                        Today
+                    </Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => handleDayNavigate("next")}
                     style={{
@@ -133,6 +136,6 @@ const DayChangerContainer = () => {
             </View>
         </View>
     )
-}
+};
 
 export default DayChangerContainer;

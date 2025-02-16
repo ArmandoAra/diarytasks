@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Button, Pressable, TextStyle, TextInput, Alert, SafeAreaView, Keyboard, TouchableWithoutFeedback, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import Task from '../../components/task/task'; // Ajusta la ruta según tu proyecto
 
 import { useGlobalContext } from '@/context/GlobalProvider';
@@ -12,19 +12,12 @@ import { formatDateToString } from '@/Utils/helpFunctions';
 // Icons
 import Entypo from '@expo/vector-icons/Entypo';
 import { useThemeContext } from '@/context/ThemeProvider';
-import { AntDesign } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
-import { createTask, getTasksByDate } from '@/db/taskDb';
 import { CreateNewTask } from '../createTask/createTask';
-
-
 
 const TasksContainer = () => {
     const [sortOption, setSortOption] = React.useState<SortOption>("All");
     const { tasks, day } = useGlobalContext();
     const { theme } = useThemeContext();
-
-
 
     const [sortedTasks, setSortedTasks] = useState<CreateTaskProps[]>(tasks);
 
@@ -37,7 +30,6 @@ const TasksContainer = () => {
 
     }, [sortOption, tasks]);
 
-
     return (
         <View
             style={{
@@ -45,17 +37,16 @@ const TasksContainer = () => {
                 flex: 1,
                 borderTopLeftRadius: 16,
                 borderTopRightRadius: 16,
-                marginTop: 2,
-
+                marginTop: 5,
                 overflow: "hidden",
                 marginHorizontal: "auto",
-                backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.secondary,
+                backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.secondary2,
             }}>
             <View
                 style={{
                     width: "100%",
                     height: 50,
-                    backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.secondary,
+                    backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.secondary2,
                 }}>
                 <Text style={{
                     fontSize: 18,
@@ -174,15 +165,12 @@ const TasksContainer = () => {
                 </TouchableOpacity>
 
             </View>
-            {/* <TornPaperButton /> */}
-
-            {/* Lista de tareas */}
 
             <ScrollView
                 style={{
                     paddingHorizontal: 5,
                     paddingVertical: 10,
-                    backgroundColor: theme == "light" ? Colors.light.secondary2 : Colors.dark.background,
+                    backgroundColor: theme == "light" ? Colors.light.background2 : Colors.dark.background,
                 }} >
                 {sortedTasks.map(task => (
                     <Task

@@ -18,12 +18,14 @@ import { en, registerTranslation } from 'react-native-paper-dates'
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 import { getTasksByDate, updateTaskById } from '@/db/taskDb';
-import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { AntDesign, FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { useStatesContext } from '@/context/StatesProvider';
+import { useThemeContext } from '@/context/ThemeProvider';
 registerTranslation('en', en)
 
 const EditTaskScreen = () => {
+  const { theme } = useThemeContext();
   const { tasks, setTasks } = useGlobalContext();
   const { setLoading, setEditTaskOpen, editTaskOpen } = useStatesContext();
   const [tasksError, setTasksError] = useState<string>("");
@@ -40,6 +42,7 @@ const EditTaskScreen = () => {
   );
 
   useEffect(() => {
+
     const selectedTask = searchTaskById(editTaskOpen.id, tasks);
     setData((prevData) => ({
       ...prevData,
@@ -82,65 +85,123 @@ const EditTaskScreen = () => {
 
 
   return (
-    <ScrollView style={{ width: "100%", height: "100%", position: "absolute", backgroundColor: Colors.light.background, zIndex: 10 }}>
-      <View style={styles.container}>
-        <View style={{ backgroundColor: Colors.light.secondary2, width: "90%", marginHorizontal: "5%", padding: 10, borderRadius: 16, marginTop: 20, }}>
-          <View style={{ flexDirection: "row" }}>
-            <Text style={styles.label}>Edit Tak</Text>
-            <TouchableOpacity onPress={() => setEditTaskOpen({ isOpen: false, id: "" })}>
-              <FontAwesome name="close" size={34} color={Colors.light.primary} /></TouchableOpacity>
-          </View>
-          <View style={{ width: "100%", flexDirection: "row", justifyContent: "space-between", marginBottom: 1 }}>
-            <TextInput
-              style={{
-                ...styles.input,
-                backgroundColor: Colors.light.secondary,
-                paddingLeft: 15,
-                borderRadius: 16,
-                width: "45%", height: 50,
-              }}
-              value={data.title}
-              onChangeText={(value) => handleChanges("title", value)}
-              placeholder="Task title"
-            />
-            <View style={{ borderRadius: 16, borderWidth: 1, backgroundColor: '#a8232300', width: "45%", height: 50 }}>
-              <Picker
-                selectedValue={data.priority}
-                onValueChange={(value) => handleChanges("priority", value)}
-                style={{ backgroundColor: '#a8232300', color: '#000', height: "100%" }}
-              >
-                <Picker.Item label="High" value="High" style={{ fontSize: 11 }} />
-                <Picker.Item label="Medium" value="Medium" style={{ fontSize: 11 }} />
-                <Picker.Item label="Low" value="Low" style={{ fontSize: 11 }} />
-              </Picker>
-            </View>
+    <ScrollView
+      style={{
+        width: "100%",
+        height: "100%",
+        position: "absolute",
+        backgroundColor: theme == "light" ? Colors.light.background : Colors.dark.background2,
+        zIndex: 10
 
-          </View>
+      }}>
+      <View
+        style={{
+          backgroundColor: theme == "light" ? Colors.light.background : Colors.dark.secondary2,
+          width: "90%",
+          marginHorizontal: "5%",
+          padding: 10,
+          borderRadius: 16,
+          marginTop: 20,
+          gap: 10,
+        }}>
+        <View
+          style={{ flexDirection: "row" }}>
+          <Text style={styles.label}>Edit Tak</Text>
+          <TouchableOpacity
+            onPress={() => setEditTaskOpen({ isOpen: false, id: "" })}
+            style={{
+              backgroundColor: theme == "light" ? Colors.light.background2 : Colors.dark.ternary2,
+              width: 40,
+              height: 40,
+              alignItems: "center",
+              justifyContent: "center",
+              borderRadius: 5,
+              right: 10,
+              elevation: 5
+            }}>
+            <FontAwesome name="close" size={34} color={theme == "light" ? Colors.text.textDark : Colors.text.textLight} />
+          </TouchableOpacity>
+        </View>
+        <View
+          style={{
+            width: "100%",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            marginBottom: 1
+          }}>
           <TextInput
             style={{
               ...styles.input,
-              height: 150,
-              backgroundColor: Colors.light.secondary,
-              padding: 15,
+              backgroundColor: theme == "light" ? Colors.light.background2 : Colors.dark.background2,
+              color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
+              paddingLeft: 15,
               borderRadius: 16,
-              marginBottom: 10
+              width: "45%", height: 50,
             }}
-            value={data.description}
-            onChangeText={(value) => handleChanges("description", value)}
-            placeholder="Enter task description"
-            numberOfLines={5}
-            multiline
-            textAlignVertical="top"
+            value={data.title}
+            onChangeText={(value) => handleChanges("title", value)}
+            placeholder="Task title"
           />
+          <View
+            style={{
+              borderRadius: 16,
+              borderWidth: 1,
+              backgroundColor: '#a8232300',
+              width: "45%",
+              height: 50
+            }}>
+            <Picker
+              selectedValue={data.priority}
+              onValueChange={(value) => handleChanges("priority", value)}
+
+              style={{
+                backgroundColor: '#a8232300',
+                color: '#000',
+                height: "100%"
+              }}
+            >
+              <Picker.Item label="High" value="High" style={{ fontSize: 11 }} />
+              <Picker.Item label="Medium" value="Medium" style={{ fontSize: 11 }} />
+              <Picker.Item label="Low" value="Low" style={{ fontSize: 11 }} />
+            </Picker>
+          </View>
 
         </View>
+        <TextInput
+          style={{
+            ...styles.input,
+            height: 150,
+            backgroundColor: theme == "light" ? Colors.light.background2 : Colors.dark.background2,
+            color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
+            padding: 15,
+            borderRadius: 16,
+            marginBottom: 10
+          }}
+          value={data.description}
+          onChangeText={(value) => handleChanges("description", value)}
+          placeholder="Enter task description"
+          numberOfLines={5}
+          multiline
+          textAlignVertical="top"
+        />
 
-        <View style={{ width: "100%", flexDirection: "row", height: 60, justifyContent: "flex-end", paddingRight: 20, marginTop: 20 }}>
-          {data.description && <TouchableOpacity onPress={handleSubmit} style={{ right: 0, position: "relative" }} >
-            <MaterialIcons name="assignment-add" size={38} color={Colors.light.background2} />
-          </TouchableOpacity>}
-        </View>
       </View>
+
+      <View
+        style={{
+          width: "100%",
+          flexDirection: "row",
+          height: 60,
+          justifyContent: "flex-end",
+          paddingRight: 20,
+          marginTop: 20
+        }}>
+        {data.description && <TouchableOpacity onPress={handleSubmit} style={{ right: 0, position: "relative" }} >
+          <AntDesign name="pluscircle" size={50} color={theme == "light" ? Colors.light.secondary : Colors.dark.secondary2} />
+
+        </TouchableOpacity>}
+      </View>
+
     </ScrollView >
 
   );

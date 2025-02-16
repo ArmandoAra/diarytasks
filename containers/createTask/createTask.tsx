@@ -4,10 +4,10 @@ import { useStatesContext } from "@/context/StatesProvider";
 import { useThemeContext } from "@/context/ThemeProvider";
 import { createTask, getTasksByDate } from "@/db/taskDb";
 import { CreateTaskProps } from "@/interfaces/TasksInterfaces";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useState, useRef, useEffect, } from "react";
-import { TextInput, Alert, View, Pressable, StyleSheet } from "react-native";
+import { TextInput, Alert, View, Pressable, StyleSheet, Text, TouchableOpacity } from "react-native";
 
 
 const initialData = (day: string): CreateTaskProps => {
@@ -85,66 +85,117 @@ export const CreateNewTask = () => {
                     marginBottom: createTaskOpen ? -20 : 40,
                     zIndex: 10,
                 }}>
-                <Pressable
+                <TouchableOpacity
                     onPress={() => handleTask()}
-                    style={{ margin: 10 }}
+                    style={{
+                        marginTop: 30,
+                        margin: createTaskOpen ? 10 : 20,
+                        width: 50,
+                        height: 50,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: 25,
+                        elevation: 5,
+                        backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.secondary2
+                    }}
                 >
                     {/* Icono de plus */}
-                    <AntDesign name="pluscircle" size={50} color={theme == "light" ? Colors.light.secondary : Colors.dark.background
-                    } />
-                </Pressable>
-                {createTaskOpen && <Pressable
-                    onPress={() => CloseTask()}
-                    style={{ margin: 10, }}
-                >
-                    <AntDesign name="minuscircle" size={50} color={theme == "light" ? Colors.light.primary : Colors.dark.background} />
-                </Pressable>}
+                    <FontAwesome5 name="plus" size={32} color={theme == "light" ? Colors.text.textDark : Colors.text.textLight} />
+
+                </TouchableOpacity>
+                {createTaskOpen &&
+                    <TouchableOpacity
+                        onPress={() => CloseTask()}
+                        style={{
+                            margin: createTaskOpen ? 10 : 20,
+                            width: 50,
+                            height: 50,
+                            alignItems: "center",
+                            justifyContent: "center",
+                            borderRadius: 25,
+                            elevation: 5,
+                            backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.secondary2
+                        }}
+                    >
+                        <FontAwesome6 name="minus" size={32} color={theme == "light" ? Colors.text.textDark : Colors.text.textLight} />
+
+                    </TouchableOpacity>}
             </View>
-            {createTaskOpen && <View style={{
-                padding: 5,
-                borderRadius: 16,
-                backgroundColor: theme == "light" ? Colors.light.background : Colors.dark.primary,
-                elevation: 5,
-                marginBottom: 40,
-            }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'flex-start', marginHorizontal: 10, marginBottom: 3 }}>
-                    <TextInput
-                        style={{ ...styles.input, fontFamily: "Kavivanar", textAlignVertical: "bottom", width: "40%", borderRadius: 16, height: 60 }}
-                        value={data.title}
-                        onChangeText={(value) => handleChanges("title", value)}
-                        placeholder="Enter task title"
-
-                    />
-                    <View style={{ width: 120, height: 50, borderRadius: 16, borderWidth: 1, backgroundColor: '#a8232300' }}>
-                        <Picker
-                            selectedValue={data.priority}
-                            onValueChange={(value) => handleChanges("priority", value)}
-                        >
-                            <Picker.Item label="High" value="High"
-                                style={{ fontSize: 12, height: 5, fontFamily: "Kavivanar" }} />
-                            <Picker.Item label="Medium" value="Medium" style={{ fontSize: 12, height: "60%", fontFamily: "Kavivanar" }} />
-                            <Picker.Item label="Low" value="Low" style={{ fontSize: 12, height: "60%", fontFamily: "Kavivanar" }} />
-                        </Picker>
-                    </View>
-
-                </View>
-                <TextInput
-                    style={[styles.input, {
-                        height: 100,
-                        padding: 15,
-                        width: "80%",
+            {createTaskOpen &&
+                <View
+                    style={{
+                        padding: 5,
                         borderRadius: 16,
-                        fontFamily: "Kavivanar",
-                    }]}
-                    ref={descriptionInputRef}
-                    value={data.description}
-                    onChangeText={(value) => handleChanges("description", value)}
-                    placeholder="Enter task description"
-                    numberOfLines={5}
-                    multiline
-                    textAlignVertical='top'
-                />
-            </View>}
+                        backgroundColor: theme == "light" ? Colors.light.primary : Colors.dark.primary,
+                        elevation: 5,
+                        marginBottom: 40,
+                    }}>
+                    <View
+                        style={{
+                            flexDirection: 'row',
+                            justifyContent: 'flex-start',
+                            marginHorizontal: 10,
+                            marginBottom: 3
+                        }}>
+                        <TextInput
+                            style={{
+                                ...styles.input,
+                                fontFamily: "Kavivanar",
+                                textAlignVertical: "bottom",
+                                width: "40%",
+                                borderRadius: 16,
+                                height: 60,
+                                color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
+                            }}
+                            value={data.title}
+                            onChangeText={(value) => handleChanges("title", value)}
+                            placeholder="Enter task title"
+                            placeholderTextColor={theme == "light" ? Colors.text.textDark : Colors.text.textLight}
+
+                        />
+                        <View
+                            style={{
+                                width: 120,
+                                height: 50,
+                                borderRadius: 16,
+                                borderWidth: 1,
+                                backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.secondary,
+                            }}>
+                            <Picker
+                                selectedValue={data.priority}
+                                onValueChange={(value) => handleChanges("priority", value)}
+
+                            >
+                                <Picker.Item label="High" value="High"
+                                    style={{ fontSize: 12, height: 5, fontFamily: "Kavivanar" }} />
+                                <Picker.Item label="Medium" value="Medium" style={{ fontSize: 12, height: "60%", fontFamily: "Kavivanar" }} />
+                                <Picker.Item label="Low" value="Low" style={{ fontSize: 12, height: "60%", fontFamily: "Kavivanar" }} />
+                            </Picker>
+                        </View>
+
+                    </View>
+                    <TextInput
+                        style={[
+                            styles.input,
+                            {
+                                height: 100,
+                                padding: 15,
+                                width: "80%",
+                                borderRadius: 16,
+                                fontFamily: "Kavivanar",
+                                color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
+                            }]}
+                        ref={descriptionInputRef}
+                        value={data.description}
+                        onChangeText={(value) => handleChanges("description", value)}
+                        placeholder="Enter task description"
+                        placeholderTextColor={theme == "light" ? Colors.text.textDark : Colors.text.textLight}
+
+                        numberOfLines={5}
+                        multiline
+                        textAlignVertical='top'
+                    />
+                </View>}
         </View>
     )
 };

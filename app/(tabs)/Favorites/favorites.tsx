@@ -21,20 +21,12 @@ import Svg, { Line } from 'react-native-svg';
 import { Fontisto } from '@expo/vector-icons';
 import Loader from '@/components/loader/loader';
 import { useStatesContext } from '@/context/StatesProvider';
+import { useThemeContext } from '@/context/ThemeProvider';
 
-
-
-const fetchFavoritesNotes = async (setFavoritesNotes: React.Dispatch<React.SetStateAction<CreateNoteProps[]>>) => {
-    const response = await getFavoritesNotes();
-    if (response.success && response.data) {
-        setFavoritesNotes(response.data);
-    } else {
-        console.log(response.message || 'An error occurred while fetching tasks.');
-    }
-};
 
 const FavoritesTab = () => {
     const { loading, setLoading } = useStatesContext();
+    const { theme } = useThemeContext();
 
     const [favoritesNotes, setFavoritesNotes] = useState<CreateNoteProps[]>([]);
 
@@ -59,18 +51,38 @@ const FavoritesTab = () => {
         <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
             <View style={{
                 flex: 1,
-                backgroundColor: Colors.light.secondary,
-                height: 100,
+                backgroundColor: theme == "light" ? Colors.light.primary : Colors.dark.background2,
+                height: 105,
                 width: "100%",
                 justifyContent: "center",
                 position: "absolute"
             }}>
-                <Text style={{ color: "black", marginTop: 0, fontFamily: "Pacifico", fontSize: 30, textAlign: "center", }}>Favorites</Text>
+                <Text
+                    style={{
+                        marginTop: 0,
+                        fontFamily: "Pacifico",
+                        fontSize: 30,
+                        textAlign: "center",
+                        color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
+                    }}>Favorites</Text>
             </View>
-            <ScrollView style={{ marginTop: 100 }}>
+            <ScrollView
+                style={{
+                    marginTop: 105,
+                    backgroundColor: theme == "light" ? Colors.light.background : Colors.dark.background
+                }}>
                 {!loading ?
                     favoritesNotes.map((note, index) => (
-                        <View style={styles.container} key={index}>
+                        <View
+                            key={index}
+                            style={{
+                                overflow: 'hidden',
+                                width: '90%',
+                                borderRadius: 19,
+                                marginTop: 20,
+                                marginHorizontal: 'auto',
+                                backgroundColor: theme == "light" ? Colors.light.background2 : Colors.dark.primary,
+                            }}>
                             <View style={stylesSvg.background}>
                                 {Array.from({ length: 20 }).map((_, i) => (
                                     <Svg key={i} height="26" width="100%">
@@ -129,7 +141,6 @@ const styles = StyleSheet.create({
         marginTop: 20,
         marginHorizontal: 'auto',
         backgroundColor: Colors.light.primaryDark,
-        elevation: 5,
     },
     label: {
         height: 70,

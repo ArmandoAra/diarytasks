@@ -43,7 +43,7 @@ const Task = ({
 
     // Logica para el doble  tap de la tarea
     const [lastTap, setLastTap] = useState(0);
-    const DOUBLE_TAP_DELAY = 300; // Tiempo en milisegundos para considerar un doble tap
+    const DOUBLE_TAP_DELAY = 300;
     const handleDoubleTap = async () => {
         const now = Date.now();
         if (now - lastTap < DOUBLE_TAP_DELAY) {
@@ -59,13 +59,13 @@ const Task = ({
     };
 
     return (
-        <Pressable
+        <TouchableOpacity
             onPress={handleDoubleTap}
             style={{
                 marginVertical: 5,
                 padding: 5,
                 borderRadius: 16,
-                backgroundColor: theme == "light" ? Colors.light.background : Colors.dark.primary,
+                backgroundColor: theme == "light" ? Colors.light.background : Colors.dark.ternary,
                 elevation: 5
             }}
         >
@@ -110,20 +110,21 @@ const Task = ({
                         width: "100%",
                         fontFamily: "Kavivanar",
                         fontSize: 10,
-                        opacity: 0.7
+                        opacity: 0.7,
+                        color: theme == "light" ? Colors.text.textDark : Colors.text.textLight
                     }}>{status == "ToDo" && "Double Tap to Complete"}</Text>
-                <View style={{ flexDirection: "row", position: "absolute", right: 0, bottom: -10, gap: 16 }}>
+                <View style={{ flexDirection: "row", position: "absolute", right: 0, bottom: -10, gap: 10 }}>
                     <TouchableOpacity
                         onPress={() => setEditTaskOpen({ isOpen: true, id })}
                         style={{
-                            backgroundColor: theme == "light" ? Colors.light.primaryDark : Colors.dark.primaryLight,
+                            backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.secondary2,
                             width: 36,
                             height: 36,
                             justifyContent: "center",
                             alignItems: "center",
                             borderRadius: 16
                         }}>
-                        <FontAwesome6 name="pen-to-square" size={21} />
+                        <FontAwesome6 name="pen-to-square" size={21} color={theme == "light" ? Colors.text.textDark : Colors.text.textLight} />
                     </TouchableOpacity>
                     <TouchableOpacity
                         onPress={() => {
@@ -131,7 +132,7 @@ const Task = ({
                             )
                         }}
                         style={{
-                            backgroundColor: theme == "light" ? Colors.light.primaryDark : Colors.dark.primaryLight,
+                            backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.secondary2,
                             width: 36,
                             height: 36,
                             justifyContent: "center",
@@ -139,13 +140,13 @@ const Task = ({
                             borderRadius: 16
                         }}>
                         <Text>
-                            <Ionicons name="trash-bin" size={24} />
+                            <Ionicons name="trash-bin" size={24} color={theme == "light" ? Colors.text.textDark : Colors.text.textLight} />
                         </Text>
                     </TouchableOpacity>
                 </View>
             </View>
 
-        </Pressable>
+        </TouchableOpacity>
 
     );
 };

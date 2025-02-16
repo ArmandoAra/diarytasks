@@ -1,57 +1,30 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
-  ScrollView,
-  StyleSheet,
-  Alert,
   FlatList,
 } from 'react-native';
 
 // Components
-
-// Styles
-import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
-import { createNote, deleteNoteById, getNotesByDate, updateFavorite } from '@/db/noteDb';
-import { useGlobalContext } from '@/context/GlobalProvider';
-import { Fontisto, MaterialIcons } from '@expo/vector-icons';
-import { Colors } from '@/constants/Colors';
-import Svg, { Line } from 'react-native-svg';
-import { useNavigation, useTheme } from '@react-navigation/native';
-import { BottomTabNavProps } from '@/interfaces/types';
-import { useStatesContext } from '@/context/StatesProvider';
-import Loader from '@/components/loader/loader';
 import Note from '@/components/note/note';
-import { useThemeContext } from '@/context/ThemeProvider';
 import EditNoteScreen from '@/containers/editNote/editNote';
 import CreateNote from '@/containers/editNote/createNote';
 import { DeletingPopUp } from '@/components/delete/deletingPopUp';
 import DayChangerContainer from '@/containers/dayChanger/dayChangerContainer';
+
+import { getNotesByDate } from '@/db/noteDb';
+
+import { useThemeContext } from '@/context/ThemeProvider';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import { useStatesContext } from '@/context/StatesProvider';
+
 import { formatDateToString } from '@/Utils/helpFunctions';
-
-const initialNoteData = (day: string): CreateNoteProps => {
-  return {
-    id: '',
-    title: '',
-    message: '',
-    isFavorite: 0,
-    date: day,
-  }
-}
-
+import { Colors } from '@/constants/Colors';
 
 const NotesTab = () => {
   const { day, dayNotes, setDayNotes } = useGlobalContext();
-  const { loading, setLoading, editNoteOpen, createNoteOpen, deletingOpen } = useStatesContext();
+  const { loading, setLoading, editNoteOpen, deletingOpen } = useStatesContext();
   const { theme } = useThemeContext();
-  const [note, setNote] = useState<CreateNoteProps>(initialNoteData(day));
-  const navigation = useNavigation<BottomTabNavProps>();
-  const [favoritesNotes, setFavoritesNotes] = useState<CreateNoteProps[]>([]);
-
-  const [notesError, setNotesError] = useState<string>('');
-  const [noteToDelete, setNoteToDelete] = useState<string>('');
 
   useEffect(() => {
     getNotesByDate(day)
@@ -63,63 +36,58 @@ const NotesTab = () => {
         setDayNotes([]);
       });
 
+    setLoading(false);
+
   }, [day, loading]);
 
 
-  const handleNoteDelete = (id: string) => {
-    deleteNoteById(id)
-    const fetchNotesDay = async () => {
-      setLoading(true);
-      const response = await getNotesByDate(day);
-      if (response.success && response.data) {
-        setDayNotes(response.data);
-        setLoading(false);
-      } else {
-        setNotesError(response.message || 'An error occurred while fetching notes.');
-        setLoading(false);
-      }
-    };
-    fetchNotesDay();
-    setNoteToDelete('');
-  }
-
-  const handleChanges = (key: keyof CreateNoteProps, value: string | boolean | number) => {
-    setNote((prevData) => ({
-      ...prevData,
-      [key]: value,
-    }));
-  };
-
-
-  const handleFavoriteToggle = async (id: string) => {
-    updateFavorite(id, 0).then(() => {
-      const newFavoritesNotes = favoritesNotes.filter(note => note.id !== id);
-      setFavoritesNotes(newFavoritesNotes);
-    });
-  }
-
-
   return (
-    <View style={{ flex: 1, backgroundColor: theme == "light" ? Colors.light.background : Colors.dark.primary }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: theme == "light" ? Colors.light.background : Colors.dark.primary,
+
+      }}>
+
       {/* On Note Deleting */}
       {(deletingOpen.isOpen && deletingOpen.type == "Note") && <DeletingPopUp />}
 
       {/* Header */}
-      <View style={{ height: 130, backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.primary2 }}>
+      <View
+        style={{
+          height: 105,
+          backgroundColor: theme == "light" ? Colors.light.primary : Colors.dark.background2
+        }}>
         <Text style={{
           textAlignVertical: "center",
-          color: "black",
+          color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
           marginTop: 0,
           fontFamily: "Pacifico",
           fontSize: 30,
           textAlign: "center",
-        }}>Notes </Text>
-        <Text style={{ fontFamily: "Kavivanar", textAlign: "center", marginVertical: 2, }}>{formatDateToString(day)}</Text>
-        <DayChangerContainer />
+        }}>
+          Notes
+        </Text>
+        <Text
+          style={{
+            fontFamily: "Kavivanar",
+            textAlign: "center",
+            bottom: 0,
+            color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
+          }}>
+          {formatDateToString(day)}
+        </Text>
       </View>
+      {/* Pop Up to Edit Note */}
+      {editNoteOpen.isOpen && <EditNoteScreen />}
+      <DayChangerContainer />
 
-
-      <View style={{ height: "85%" }}>
+      {/* Notes */}
+      <View
+        style={{
+          height: "80%",
+          backgroundColor: theme == "light" ? Colors.light.background : Colors.dark.background,
+        }}>
         <FlatList
           data={dayNotes}
           keyExtractor={(item) => item.id.toString()}
@@ -133,16 +101,13 @@ const NotesTab = () => {
           )}
           numColumns={2}
           columnWrapperStyle={{ justifyContent: "space-around" }}
-          contentContainerStyle={{ backgroundColor: Colors.light.background }}
           ListFooterComponent={<CreateNote />} // Agrega el componente al final
         />
 
-        {/* Pop Up to Edit Note */}
-        {editNoteOpen.isOpen && <EditNoteScreen />}
+
       </View>
 
     </View >
-
   );
 };
 

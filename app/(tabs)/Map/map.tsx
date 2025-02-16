@@ -21,6 +21,7 @@ import { getSortedDaysWithNotesAndTasks } from '@/db/mapDb';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { Colors } from '@/constants/Colors';
 import { useStatesContext } from '@/context/StatesProvider';
+import { ThemeProvider, useThemeContext } from '@/context/ThemeProvider';
 
 interface SortedDataProps {
     date: string;
@@ -42,7 +43,9 @@ const fetchAllDaysWithData = async (setDaysWithData: React.Dispatch<React.SetSta
 };
 
 const MapTab = () => {
+    const { theme } = useThemeContext();
     const { setDay } = useGlobalContext();
+
     const [daysWithData, setDaysWithData] = useState<SortedDataProps[]>([]);
     const { setLoading } = useStatesContext();
     const navigation = useNavigation<BottomTabNavProps>();
@@ -66,8 +69,8 @@ const MapTab = () => {
             fontSize: 30,
             fontFamily: "Pacifico",
             flex: 1,
-            backgroundColor: Colors.light.secondary,
-            color: Colors.light.background2
+            backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.background2,
+            color: theme == "light" ? Colors.text.textDark : Colors.text.textLight
         }}>
             No data available
         </Text>;
@@ -90,11 +93,29 @@ const MapTab = () => {
 
 
     return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.light.primaryLight }}>
-            <Text style={{
-                color: Colors.light.background2, height: 100, width: "100%", backgroundColor: Colors.light.secondary, position: "absolute", elevation: 5,
-                textAlign: "center", textAlignVertical: "center", fontSize: 20, fontFamily: "Pacifico", padding: 10, top: 0, zIndex: 1,
-            }}>MAP</Text>
+        <View
+            style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: theme == "light" ? Colors.light.background2 : Colors.dark.primary2,
+            }}>
+            <Text
+                style={{
+                    color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
+                    height: 105,
+                    width: "100%",
+                    backgroundColor: theme == "light" ? Colors.light.primary : Colors.dark.background2,
+                    position: "absolute",
+                    elevation: 5,
+                    textAlign: "center",
+                    textAlignVertical: "center",
+                    fontSize: 20,
+                    fontFamily: "Pacifico",
+                    padding: 10,
+                    top: 0,
+                    zIndex: 1,
+                }}>MAP</Text>
             <ScrollView style={{ width: "100%", height: "100%", marginTop: 100 }}>
                 {Object.entries(groupedByYearAndMonth).map(([year, months]) => (
                     <View key={year} style={{
@@ -104,7 +125,7 @@ const MapTab = () => {
                         marginTop: 10,
                         marginHorizontal: "auto",
                         width: "95%",
-                        backgroundColor: Colors.light.secondary,
+                        backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.primary2,
                         borderRadius: 16,
                         overflow: "hidden",
                     }}>
@@ -115,8 +136,8 @@ const MapTab = () => {
                             height: 50,
                             fontFamily: "Cagliostro",
                             fontSize: 40,
-                            color: Colors.light.background2,
-                            backgroundColor: Colors.light.secondary,
+                            color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
+                            backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.secondary2,
                         }}>
                             {year}
                         </Text>
@@ -124,7 +145,6 @@ const MapTab = () => {
                         {/* Meses */}
                         {Object.entries(months).map(([month, days]) => (
                             <View key={month} style={{
-                                marginVertical: 1,
                                 width: "100%",
                             }}>
                                 {/* Nombre del Mes */}
@@ -132,9 +152,9 @@ const MapTab = () => {
                                     textAlign: "center",
                                     fontSize: 30,
                                     fontFamily: "Cagliostro",
-                                    color: Colors.light.background2,
-                                    backgroundColor: Colors.light.secondary,
                                     paddingVertical: 5,
+                                    color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
+                                    backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.secondary2,
                                 }}>
                                     {month}
                                 </Text>
@@ -144,7 +164,7 @@ const MapTab = () => {
                                     flexDirection: "row",
                                     flexWrap: "wrap",
                                     width: "100%",
-                                    backgroundColor: Colors.light.background,
+                                    backgroundColor: theme == "light" ? Colors.light.background : Colors.dark.secondary2,
                                     paddingVertical: 10
                                 }}>
                                     {days
@@ -154,7 +174,7 @@ const MapTab = () => {
                                                 key={day}
                                                 style={{
                                                     width: "12.5%",
-                                                    backgroundColor: Colors.light.primary,
+                                                    backgroundColor: theme == "light" ? Colors.light.primary : Colors.dark.ternary2,
                                                     margin: 3,
                                                     borderRadius: 16,
                                                     elevation: 5
@@ -165,12 +185,12 @@ const MapTab = () => {
                                             >
                                                 {haveNote &&
                                                     <View style={{ right: 2, position: "absolute", bottom: 2 }}>
-                                                        <FontAwesome name="sticky-note" size={14} color={Colors.light.primaryDark} /></View>}
+                                                        <FontAwesome name="sticky-note" size={14} color={Colors.light.ternary2} /></View>}
                                                 {allTasksCompleted && <View style={{ position: "absolute", top: 2, left: 2 }}>
                                                     <Feather name="check-circle" size={16} color="green" />
                                                 </View>}
                                                 <Text style={{
-                                                    color: Colors.light.background,
+                                                    color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
                                                     fontSize: 30,
                                                     fontFamily: "Pacifico",
                                                     textAlign: "center",

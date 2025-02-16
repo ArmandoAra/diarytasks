@@ -21,14 +21,25 @@ import { useStatesContext } from '@/context/StatesProvider';
 import { DeletingPopUp } from '@/components/delete/deletingPopUp';
 import use from 'react';
 import { de } from 'react-native-paper-dates';
+import { useThemeContext } from '@/context/ThemeProvider';
 
 interface HomeProps {
     navigation: any;
 }
 
 const Home: React.FC<HomeProps> = () => {
+    const { theme } = useThemeContext();
     const { day, setUser, setTasks, setDayNotes, } = useGlobalContext();
-    const { dbLoaded, editNoteOpen, editTaskOpen, setDbLoaded, setEditNoteOpen, setEditTaskOpen, deletingOpen, setLoading, loading } = useStatesContext();
+    const { dbLoaded,
+        editNoteOpen,
+        editTaskOpen,
+        setDbLoaded,
+        setEditNoteOpen,
+        setEditTaskOpen,
+        deletingOpen,
+        setLoading,
+        loading,
+        setDeletingOpen } = useStatesContext();
 
     useEffect(() => {
         loadDatabase()
@@ -70,7 +81,7 @@ const Home: React.FC<HomeProps> = () => {
     useEffect(() => {
         const backAction = () => {
             if (!editNoteOpen.isOpen && !editTaskOpen.isOpen) {
-                Alert.alert("Hold on!", "Are you sure you want to exit?", [
+                Alert.alert("Wait!!", "Are you sure you want to exit?", [
                     { text: "Cancel", onPress: () => null, style: "cancel" },
                     { text: "YES", onPress: () => BackHandler.exitApp() }
                 ]);
@@ -78,15 +89,14 @@ const Home: React.FC<HomeProps> = () => {
             }
             setEditNoteOpen({ isOpen: false, id: "" });
             setEditTaskOpen({ isOpen: false, id: "" });
-            return true; // Bloquea el comportamiento por defecto
+            setDeletingOpen({ isOpen: false, id: "", type: null });
+            return true;
         };
 
-        // Agregar el evento al presionar el botón de retroceso
         const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
 
-        // Limpiar el evento al desmontar o cuando cambien las dependencias
         return () => backHandler.remove();
-    }, [editNoteOpen, editTaskOpen]);
+    }, [editNoteOpen, editTaskOpen, deletingOpen]);
 
     return (
         <>
@@ -96,7 +106,7 @@ const Home: React.FC<HomeProps> = () => {
             {!dbLoaded
                 ? <Loader />
                 :
-                <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
+                <View style={{ flex: 1, backgroundColor: theme == "light" ? Colors.light.background : Colors.dark.background }}>
                     <Header />
                     <TasksContainer />
                 </View>

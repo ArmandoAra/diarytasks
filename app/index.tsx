@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import { useColorScheme, StyleSheet, Keyboard } from 'react-native';
-import { SplashScreen } from 'expo-router';
+import { Keyboard } from 'react-native';
 
-import { SQLiteProvider } from 'expo-sqlite';
-import { GlobalProvider, useGlobalContext } from '@/context/GlobalProvider';
-import { ThemeProvider } from '@/context/ThemeProvider';
-import { useFonts } from 'expo-font';
+import { SplashScreen } from 'expo-router';
 import { FontAwesome, Fontisto, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { useFonts } from 'expo-font';
+import { SQLiteProvider } from 'expo-sqlite';
+
+import { GlobalProvider } from '@/context/GlobalProvider';
+import { ThemeProvider, useThemeContext } from '@/context/ThemeProvider';
 import { Colors } from '@/constants/Colors';
 
 // TABS
@@ -19,36 +20,30 @@ import MapTab from './(tabs)/Map/map';
 
 //Screens
 import SettingsScreen from './screens/settings/settings';
-import { createDatabaseStructure, loadDatabase } from '@/db/db';
-import { createUser, getUser } from '@/db/userDb';
 import { StatesProvider } from '@/context/StatesProvider';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 
-// Configuración del Tab Navigator
 const Tab = createBottomTabNavigator();
 const HomeTabs = () => {
-
+    const { theme } = useThemeContext();
+    // Ocultar el tab bar cuando el teclado está visible
     const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-
     useEffect(() => {
         const showSubscription = Keyboard.addListener("keyboardDidShow", () => setIsKeyboardVisible(true));
         const hideSubscription = Keyboard.addListener("keyboardDidHide", () => setIsKeyboardVisible(false));
-
         return () => {
             showSubscription.remove();
             hideSubscription.remove();
         };
     }, []);
 
-
     return (
-
         <Tab.Navigator
             screenOptions={{
-                tabBarStyle: isKeyboardVisible ? { display: "none" } : { height: 60, backgroundColor: Colors.light.background2 },
+                tabBarStyle: isKeyboardVisible ? { display: "none" } : { height: 60, backgroundColor: theme == "light" ? Colors.light.primary : Colors.dark.background2 },
                 tabBarItemStyle: {
                     paddingVertical: 5,
                     height: 60,
@@ -62,12 +57,11 @@ const HomeTabs = () => {
                     tabBarLabel: "Home",
                     tabBarLabelStyle: { fontFamily: "Kavivanar" },
                     tabBarIcon: ({ color }) => <FontAwesome size={30} name="home" color={color} />,
-                    tabBarActiveTintColor: Colors.light.primary,
-                    tabBarInactiveTintColor: Colors.light.background,
+                    tabBarActiveTintColor: theme == 'light' ? Colors.light.background : Colors.text.textLight,
+                    tabBarInactiveTintColor: theme == "light" ? Colors.text.textDark : Colors.dark.secondary2,
                     headerShown: false,
                 }}
             />
-
             <Tab.Screen
                 name="Notes"
                 component={CreateNoteTab}
@@ -76,8 +70,8 @@ const HomeTabs = () => {
                     tabBarLabelStyle: { fontFamily: "Kavivanar" },
                     headerShown: false,
                     tabBarIcon: ({ color }) => <MaterialIcons name="note-add" size={28} color={color} />,
-                    tabBarActiveTintColor: Colors.light.primary,
-                    tabBarInactiveTintColor: Colors.light.background,
+                    tabBarActiveTintColor: theme == 'light' ? Colors.light.background : Colors.text.textLight,
+                    tabBarInactiveTintColor: theme == "light" ? Colors.text.textDark : Colors.dark.secondary2,
                 }}
             />
             <Tab.Screen
@@ -85,12 +79,11 @@ const HomeTabs = () => {
                 component={FavoritesTab}
                 options={{
                     tabBarLabel: "Favorites",
-                    // estilo de fuente del label
                     tabBarLabelStyle: { fontFamily: "Kavivanar" },
                     headerShown: false,
                     tabBarIcon: ({ color }) => <Fontisto name="star" size={25} color={color} />,
-                    tabBarActiveTintColor: Colors.light.primary,
-                    tabBarInactiveTintColor: Colors.light.background,
+                    tabBarActiveTintColor: theme == 'light' ? Colors.light.background : Colors.text.textLight,
+                    tabBarInactiveTintColor: theme == "light" ? Colors.text.textDark : Colors.dark.secondary2,
                 }}
             />
             <Tab.Screen
@@ -103,8 +96,8 @@ const HomeTabs = () => {
                     tabBarIcon: ({ color }) => (
                         <MaterialCommunityIcons name="calendar-month" size={30} color={color} />
                     ),
-                    tabBarActiveTintColor: Colors.light.primary,
-                    tabBarInactiveTintColor: Colors.light.background,
+                    tabBarActiveTintColor: theme == 'light' ? Colors.light.background : Colors.text.textLight,
+                    tabBarInactiveTintColor: theme == "light" ? Colors.text.textDark : Colors.dark.secondary2,
                 }}
             />
 
@@ -116,7 +109,6 @@ const HomeTabs = () => {
 // Configuración del Stack Navigator
 const Stack = createStackNavigator();
 const AppNavigator = () => (
-
     <Stack.Navigator>
         {/* Tabs principales */}
         <Stack.Screen name="Home" component={HomeTabs} options={{ headerShown: false }} />
@@ -151,5 +143,5 @@ export default function App() {
             </ThemeProvider>
         </SQLiteProvider>
     );
-}
+};
 
