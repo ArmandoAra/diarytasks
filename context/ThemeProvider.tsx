@@ -1,20 +1,18 @@
 
-import { useTheme } from '@react-navigation/native';
 import React, { createContext, useContext, useState, useEffect, ReactNode, FC } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Appearance } from 'react-native';
+import ThemedButton from '../Theme/themedButton/temedButton';
 
 
 interface ThemeContextProps {
-    theme: 'light' | 'dark';
-    loading: boolean;
-    setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-    setTheme: React.Dispatch<React.SetStateAction<'light' | 'dark'>>;
+    theme: string;
+    setTheme: React.Dispatch<React.SetStateAction<string>>;
 }
 
 
 const ThemeContext = createContext<ThemeContextProps>({
     theme: 'light',
-    loading: true,
-    setLoading: () => { },
     setTheme: () => { },
 });
 
@@ -25,17 +23,27 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: FC<ThemeProviderProps> = ({ children }) => {
+    const [theme, setTheme] = useState('light');
 
-    const [loading, setLoading] = useState<boolean>(true);
-    const [theme, setTheme] = useState<'light' | 'dark'>('light');
+    useEffect(() => {
+        loadTheme();
+    }, []);
+
+    const loadTheme = async () => {
+        const storedTheme = await AsyncStorage.getItem('theme');
+        if (storedTheme) {
+            setTheme(storedTheme);
+        } else {
+            const systemTheme = Appearance.getColorScheme(); // Detectar tema del sistema
+            setTheme(systemTheme || 'light');
+        }
+    };
 
     return (
         <ThemeContext.Provider
             value={{
                 theme,
-                loading,
                 setTheme,
-                setLoading,
             }}
         >
             {children}

@@ -29,7 +29,7 @@ interface HomeProps {
 
 const Home: React.FC<HomeProps> = () => {
     const { theme } = useThemeContext();
-    const { day, setUser, setTasks, setDayNotes, } = useGlobalContext();
+    const { day, user, setUser, setTasks, setDayNotes, } = useGlobalContext();
     const { dbLoaded,
         editNoteOpen,
         editTaskOpen,
@@ -42,12 +42,14 @@ const Home: React.FC<HomeProps> = () => {
         setDeletingOpen } = useStatesContext();
 
     useEffect(() => {
+
         loadDatabase()
             .then((res) => {
                 if (res.success) {
                     getUser().then((us) => {
                         const userData = JSON.parse(us);
                         setUser({ name: userData.name, id: userData.id });
+
                     });
                     setDbLoaded(true);
                 }
@@ -65,18 +67,9 @@ const Home: React.FC<HomeProps> = () => {
                 setTasks([]);
             });
 
-        getNotesByDate(day)
-            .then((notes) => {
-                setDayNotes(Array.isArray(notes.data) ? notes.data : []);
-            })
-            .catch((error) => {
-                console.error("Error retrieving Notes:", error);
-                setDayNotes([]);
-            });
-
         setLoading(false);
 
-    }, [day, loading]);
+    }, [day]);
 
     useEffect(() => {
         const backAction = () => {

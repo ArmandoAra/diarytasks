@@ -9,7 +9,7 @@ import { deleteTaskById } from '@/db/taskDb';
 import { deleteNoteById } from '@/db/noteDb';
 
 
-// Handles the deletion of a task or note
+// Handle the deletion of a task or note
 export const DeletingPopUp = () => {
     const { theme } = useThemeContext();
     const { deletingOpen, setDeletingOpen, setLoading } = useStatesContext();
@@ -44,13 +44,13 @@ export const DeletingPopUp = () => {
             paddingVertical: 3,
             width: "90%",
             position: "absolute",
-            top: 350,
+            top: 250,
             left: 20,
             gap: 10,
             padding: 10,
             borderRadius: 16,
             justifyContent: "center",
-            backgroundColor: theme == "light" ? Colors.light.background2 : Colors.text.textLight,
+            backgroundColor: theme == "light" ? Colors.light.primary2 : Colors.dark.primary2,
             zIndex: 100,
         }}>
             <Text
@@ -69,7 +69,7 @@ export const DeletingPopUp = () => {
                     textAlign: "center",
                     color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
                 }}>
-                Do you really want to delete this Note?
+                Do you really want to delete this {deletingOpen.type}?
             </Text>
             <View
                 style={{
@@ -82,7 +82,7 @@ export const DeletingPopUp = () => {
                     style={{
                         width: 90,
                         height: 40,
-                        backgroundColor: theme == "light" ? Colors.light.secondary : Colors.text.textLight,
+                        backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.background2,
                         borderRadius: 16
                     }}
                     onPress={() => setDeletingOpen({ isOpen: false, id: "", type: null })}>
@@ -101,7 +101,7 @@ export const DeletingPopUp = () => {
                     style={{
                         width: 90,
                         height: 40,
-                        backgroundColor: theme == "light" ? Colors.light.secondary : Colors.text.textLight,
+                        backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.background2,
                         borderRadius: 16
                     }}
                     onPress={() => handleDeleteById(deletingOpen.id)}>

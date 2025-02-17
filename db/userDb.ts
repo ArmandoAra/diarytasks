@@ -30,13 +30,10 @@ export async function createUser(
 
 export async function updateUser(
     id: string,
-    name: string,
-    setUser: React.Dispatch<React.SetStateAction<User>>,
-    setLoading: React.Dispatch<React.SetStateAction<boolean>>) {
+    name: string,) {
     const db = await SQLite.openDatabaseAsync('diaryTasks.db');
 
     try {
-        setLoading(true)
         const result = await db.runAsync(
             `UPDATE User SET
                  name = ? 
@@ -50,8 +47,7 @@ export async function updateUser(
         // Verificar si la tarea fue actualizada
         if (result.changes > 0) {
             console.log('User updated successfully');
-            setUser({ name, id })
-            setLoading(false)
+
             return { success: true, message: 'User updated successfully' };
         } else {
             createUser(name)
