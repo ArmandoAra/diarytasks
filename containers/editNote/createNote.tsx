@@ -5,18 +5,10 @@ import {
     StyleSheet,
     TouchableOpacity,
     Alert,
-    Pressable,
-    ScrollView,
+    ScrollView, // Import ScrollView
 } from 'react-native';
 
-
-// Styles
-// import styles from '../../../styles/editTaskStyles';
-
-// Utils
-
-// Date Picker
-import { en, registerTranslation } from 'react-native-paper-dates'
+import { en, registerTranslation } from 'react-native-paper-dates';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { createNote } from '@/db/noteDb';
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
@@ -25,111 +17,90 @@ import { Colors } from "@/constants/Colors";
 import Svg, { Line } from 'react-native-svg';
 import { useStatesContext } from '@/context/StatesProvider';
 import { useThemeContext } from '@/context/ThemeProvider';
-registerTranslation('en', en)
 
+registerTranslation('en', en);
 
+interface CreateNotePropsInterface { } // Define props if needed
 
-
-
-const CreateNote = () => {
+const CreateNote: React.FC<CreateNotePropsInterface> = () => {
     const { day } = useGlobalContext();
     const { setCreateNoteOpen, createNoteOpen, setLoading } = useStatesContext();
     const { theme } = useThemeContext();
-    const initialData = {
+
+    const initialData: CreateNoteProps = {
         id: "",
         title: '',
         message: '',
         isFavorite: 0,
         date: day,
-    }
-    const [note, setNote] = useState<CreateNoteProps>(initialData);
-    const messageInputRef = useRef<TextInput>(null); // Referencia al TextInput
-
-    const handleChanges = (key: keyof CreateNoteProps, value: string | Date) => {
-        setNote(prevData => {
-            if (prevData[key] === value) return prevData;
-            return { ...prevData, [key]: value };
-        });
     };
+
+    const [note, setNote] = useState<CreateNoteProps>(initialData);
+    const messageInputRef = useRef<TextInput>(null);
 
     useEffect(() => {
-        setNote((prevData) => ({
-            ...prevData,
-            date: day,
-        }))
-    }, [day])
+        setNote((prevData) => ({ ...prevData, date: day }));
+    }, [day]);
 
-    const handleSubmit = () => {
-        if (!note.message) return Alert.alert("Message is required", "Please enter a message for the note.");
-        setLoading(true);
-        createNote(note)
-            .then(() => {
-                setNote(initialData)
-                setCreateNoteOpen(false)
-                setLoading(false);
-            })
-            .catch((error) => {
-                console.log(error);
-            });
+    const handleChanges = (key: keyof CreateNoteProps, value: string | number) => { // Correct type for value
+        setNote(prevData => ({ ...prevData, [key]: value })); // Simplified update
     };
 
-    const handleNote = () => {
-        if (note.message == "" && createNoteOpen) return setCreateNoteOpen(false);
+    const handleSubmit = async () => {
+        if (!note.message) {
+            return Alert.alert("Message is required", "Please enter a message for the note.");
+        }
+
+        setLoading(true);
+        try {
+            await createNote(note);
+            setNote(initialData); // Reset the form
+            setCreateNoteOpen(false);
+        } catch (error) {
+            console.error("Error creating note:", error);
+            // Consider showing an error message to the user
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleNotePress = () => {
+        if (note.message === "" && createNoteOpen) {
+            return setCreateNoteOpen(false);
+        }
+
         if (!createNoteOpen) {
             setCreateNoteOpen(true);
             setTimeout(() => {
-                messageInputRef.current?.focus(); // Asegurar que el input se enfoca después de renderizarse
+                messageInputRef.current?.focus();
             }, 100);
         } else {
             handleSubmit();
-            setCreateNoteOpen(false)
         }
-    }
+    };
 
-    const CloseNote = () => {
+    const closeNote = () => {
         if (createNoteOpen) {
-            setNote(initialData)
-            setCreateNoteOpen(false)
+            setNote(initialData);
+            setCreateNoteOpen(false);
         }
-    }
+    };
+
+    const styles = createStyles(theme as "light" | "dark");
+    const stylesSvg = createStylesSvg(theme as "light" | "dark");
 
     return (
-        <View style={{ flex: 1 }}>
-            {createNoteOpen &&
-                <View
-                    style={{
-                        backgroundColor: theme == "light" ? Colors.light.secondary2 : Colors.dark.primary2,
-                        borderRadius: 16,
-                        width: "80%",
-                        marginHorizontal: "auto",
-                        marginBottom: 60,
-                        overflow: "hidden",
-                    }}>
-                    {/*  botón de favorito */}
-                    <View
-                        style={{
-                            flexDirection: "row",
-                            justifyContent: "flex-end",
-                            right: 20,
-                            top: 20,
-                            zIndex: 10
-                        }}>
-                        <TouchableOpacity onPress={() => handleChanges("isFavorite", note.isFavorite == 1 ? "0" : "1")}>
-                            {note.isFavorite == 0 ? (
-                                <Fontisto name="heart-alt" size={24} color="red" />
-                            ) : (
-                                <Fontisto name="heart" size={24} color="red" />
-                            )}
+        <View style={styles.container}>
+            {createNoteOpen && (
+                <View style={styles.noteCard}>
+                    <View style={styles.favoriteButtonContainer}>
+                        <TouchableOpacity onPress={() => handleChanges("isFavorite", note.isFavorite === 1 ? 0 : 1)}>
+                            <Fontisto name={note.isFavorite === 0 ? "heart-alt" : "heart"} size={24} color="red" />
                         </TouchableOpacity>
                     </View>
 
-                    {/* Fondo estilo libreta */}
-                    <View
-                        style={[
-                            stylesSvg.background,
-                            {
-                                backgroundColor: theme == "light" ? Colors.light.background2 : Colors.dark.ternary
-                            }]}>
+
+                    <View style={stylesSvg.background}>
                         {Array.from({ length: 20 }).map((_, i) => (
                             <Svg key={i} height="24" width="100%">
                                 <Line
@@ -145,96 +116,120 @@ const CreateNote = () => {
                     </View>
 
                     <TextInput
-                        style={{
-                            ...styles.input,
-                            width: "50%",
-                            paddingLeft: 15,
-                            color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
-                        }}
+                        style={styles.titleInput}
                         value={note.title}
                         onChangeText={(value) => handleChanges("title", value)}
                         placeholder="Enter note title"
+                        placeholderTextColor={theme === "light" ? Colors.text.textDark : Colors.text.textLight}
                     />
                     <TextInput
                         ref={messageInputRef}
-
-                        style={{
-                            ...styles.input,
-                            height: 150,
-                            paddingVertical: 10,
-                            paddingHorizontal: 15,
-                            marginBottom: 10,
-                            lineHeight: 23.4,
-                            width: "85%",
-                            color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
-                        }}
+                        style={styles.messageInput}
                         value={note.message}
                         onChangeText={(value) => handleChanges("message", value)}
                         placeholder="Enter message description"
-                        numberOfLines={5}
+                        placeholderTextColor={theme === "light" ? Colors.text.textDark : Colors.text.textLight}
                         multiline
                         textAlignVertical="top"
                     />
+                </View>
+            )}
 
-                </View>}
-
-            {/* Botón de acción flotante */}
-            <View
-                style={{
-                    flexDirection: createNoteOpen ? "column" : "row",
-                    justifyContent: "flex-end",
-                    alignItems: "flex-end",
-                    position: createNoteOpen ? "absolute" : "relative",
-                    right: 35,
-                    marginBottom: createNoteOpen ? 50 : 30,
-                    bottom: createNoteOpen ? 5 : 0,
-                    zIndex: 10,
-                }}>
-                <TouchableOpacity
-                    onPress={() => handleNote()}
-                    style={{ margin: 10 }}
-                >
-                    {/* Icono de plus */}
-                    <AntDesign name="pluscircle" size={50} color={theme == "light" ? Colors.light.secondary : Colors.dark.secondary2} />
+            <View style={styles.actionButtonContainer}>
+                <TouchableOpacity onPress={handleNotePress} style={styles.addButton}>
+                    <AntDesign name="pluscircle" size={50} color={theme == "light" ? Colors.text.textDark : Colors.text.textLight} />
                 </TouchableOpacity>
-                {createNoteOpen &&
-                    <TouchableOpacity
-                        onPress={() => CloseNote()}
-                        style={{ margin: 10, }}
-                    >
-                        <AntDesign name="minuscircle" size={50} color={theme == "light" ? Colors.light.primary : Colors.dark.background} />
-                    </TouchableOpacity>}
+                {createNoteOpen && (
+                    <TouchableOpacity onPress={closeNote} style={styles.closeButton}>
+                        <AntDesign name="minuscircle" size={50} color={theme == "light" ? Colors.text.textDark : Colors.text.textLight} />
+                    </TouchableOpacity>
+                )}
             </View>
-
-
         </View>
-
     );
 };
 
-const styles = StyleSheet.create({
-    input: {
-        alignContent: 'flex-start',
-        fontSize: 16,
-        fontFamily: 'Kavivanar',
-    },
-});
+const createStyles = (theme: 'light' | 'dark') =>
+    StyleSheet.create({
+        container: {
+            flex: 1,
+        },
+        noteCard: {
+            backgroundColor: theme === "light" ? Colors.light.secondary2 : Colors.dark.primary2,
+            marginTop: 20,
+            borderRadius: 16,
+            width: "86%",
+            marginHorizontal: "auto",
+            marginBottom: 20,
+            overflow: "hidden",
+        },
+        favoriteButtonContainer: {
+            flexDirection: "row",
+            justifyContent: "flex-end",
+            right: 20,
+            top: 20,
+            zIndex: 10,
+        },
+        notebook: {
+            // No specific styles needed, ScrollView handles scrolling
+        },
+        titleInput: {
+            alignContent: 'flex-start',
+            fontSize: 16,
+            fontFamily: 'Kavivanar',
+            width: "50%",
+            paddingLeft: 15,
+            color: theme === "light" ? Colors.text.textDark : Colors.text.textLight,
+        },
+        messageInput: {
+            alignContent: 'flex-start',
+            fontSize: 16,
+            fontFamily: 'Kavivanar',
+            height: 150,
+            paddingVertical: 10,
+            paddingHorizontal: 15,
+            marginBottom: 10,
+            lineHeight: 23.4,
+            width: "85%",
+            color: theme === "light" ? Colors.text.textDark : Colors.text.textLight,
+        },
+        actionButtonContainer: {
+            flexDirection: "row", // Changed to row
+            justifyContent: "flex-end",
+            alignItems: "flex-end",
+            position: "relative", // Changed to relative
+            right: 35,
+            marginBottom: 30,
+            bottom: 0,
+            zIndex: 10,
+        },
 
-const stylesSvg = StyleSheet.create({
-    container: {
-        // backgroundColor: '#FFFDE7',
-        elevation: 5,
-        shadowColor: 'rgba(0, 0, 0, 0.5)',
-        shadowOffset: { width: 1, height: 1 },
-        shadowOpacity: 0.5,
-        shadowRadius: 2,
-    },
-    background: {
-        flex: 1,
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-    },
-});
+        addButton: {
+            margin: 10,
+        },
+        addIconColor: {
+            color: theme === "light" ? Colors.light.secondary : Colors.dark.secondary2,
+        },
+        closeButton: {
+            margin: 10,
+        },
+        closeIconColor: {
+            color: theme === "light" ? Colors.light.primary : Colors.dark.background,
+        },
+        input: {
+            fontSize: 16,
+            fontFamily: 'Kavivanar',
+        },
+    });
+
+const createStylesSvg = (theme: 'light' | 'dark') =>
+    StyleSheet.create({
+        background: {
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            backgroundColor: theme === "light" ? Colors.light.background2 : Colors.dark.ternary,
+        },
+    });
 
 export default CreateNote;

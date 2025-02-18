@@ -1,83 +1,80 @@
 import { useGlobalContext } from '@/context/GlobalProvider';
-import React from 'react'
-import { View, Text, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, OpaqueColorValue } from 'react-native';
 
-import { en, registerTranslation } from 'react-native-paper-dates'
-registerTranslation('en', en)
+import { en, registerTranslation } from 'react-native-paper-dates';
+registerTranslation('en', en);
 
-// utils
 import { Colors } from '@/constants/Colors';
-
-// Icons
 import Ionicons from '@expo/vector-icons/Ionicons';
-
-//Navigation
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { RootStackParamList } from '@/interfaces/types'; // Importa el tipo de rutas
+import { RootStackParamList } from '@/interfaces/types';
 import DayChangerContainer from '@/containers/dayChanger/dayChangerContainer';
 import { useThemeContext } from '@/context/ThemeProvider';
 
-const Header = () => {
+interface HeaderProps { } // Define las props si las hay
+
+const Header: React.FC<HeaderProps> = () => {
     const { user } = useGlobalContext();
     const { theme } = useThemeContext();
-
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
+    const styles = createStyles(theme as "light" | "dark");  // Type the theme
+
     return (
-        <View
-            style={{
-                height: 150,
-            }} >
-            <View
-                style={{
-                    height: "70%",
-                    paddingLeft: 30,
-                    backgroundColor: theme == "light" ? Colors.light.primary : Colors.dark.background2
-                }} >
-                <View
-                    style={{
-                        width: "100%",
-                        flexDirection: "row",
-                        justifyContent: "space-between"
-                    }}>
-                    <Text
-                        style={{
-                            textAlignVertical: "bottom",
-                            fontSize: 32,
-                            fontFamily: "Pacifico",
-                            color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
-                        }} >
-                        Diary Tasks
-                    </Text>
+        <View style={styles.headerContainer}>
+            <View style={styles.headerContent}>
+                <View style={styles.titleContainer}>
+                    <Text style={styles.titleText}>Diary Tasks</Text>
                     <TouchableOpacity
                         onPress={() => navigation.navigate('Settings')}
-                        style={{
-                            right: 40,
-                            top: 30
-                        }}>
-                        <Text
-                            style={{
-                                color: theme == "light" ? Colors.text.textDark : Colors.text.textLight
-                            }}>
-                            <Ionicons name="settings-outline" size={34} />
-                        </Text>
+                        style={styles.settingsButton}
+                    >
+                        <Ionicons name="settings-outline" size={34} color={theme == "light" ? Colors.text.textDark : Colors.text.textLight} />
                     </TouchableOpacity>
                 </View>
-                <Text
-                    style={{
-                        textAlignVertical: "bottom",
-                        fontSize: 20,
-                        fontFamily: "Kavivanar",
-                        color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
-                    }}>
-                    {`Hi, ${user.name}`}
-                </Text>
+                <Text style={styles.greetingText}>{`Hi, ${user?.name || 'User'}`}</Text>
             </View>
             <DayChangerContainer />
         </View>
-    )
+    );
 };
 
+const createStyles = (theme: 'light' | 'dark') => StyleSheet.create({
+    headerContainer: {
+        height: 150,
+    },
+    headerContent: {
+        height: '70%',
+        paddingLeft: 30,
+        backgroundColor: theme === 'light' ? Colors.light.primary : Colors.dark.background2,
+        justifyContent: 'flex-end', // Alinea el contenido hacia abajo
+        paddingBottom: 10,       // Espacio inferior para el contenido
+    },
+    titleContainer: {
+        width: '100%',
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',    // Centra verticalmente los elementos
+    },
+    titleText: {
+        fontSize: 32,
+        fontFamily: 'Pacifico',
+        color: theme === 'light' ? Colors.text.textDark : Colors.text.textLight,
+        marginBottom: 10,       // Margen inferior para el título
+    },
+    settingsButton: {
+        marginRight: 20,      // Margen derecho para el botón de configuración
+    },
+    iconColor: {                // Estilo para el color del icono
+        color: theme === 'light' ? Colors.text.textDark : Colors.text.textLight,
+    },
+    greetingText: {
+        fontSize: 20,
+        fontFamily: 'Kavivanar',
+        color: theme === 'light' ? Colors.text.textDark : Colors.text.textLight,
+    },
+});
 
 export default Header;

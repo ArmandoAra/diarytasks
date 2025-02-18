@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, Text } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Colors } from "@/constants/Colors";
 
 import { useStatesContext } from '@/context/StatesProvider';
@@ -8,40 +8,64 @@ import { useThemeContext } from '@/context/ThemeProvider';
 import { deleteTaskById } from '@/db/taskDb';
 import { deleteNoteById } from '@/db/noteDb';
 
+interface DeletingPopUpProps { } // Define props if needed
 
-// Handle the deletion of a task or note
-export const DeletingPopUp = () => {
+export const DeletingPopUp: React.FC<DeletingPopUpProps> = () => {
     const { theme } = useThemeContext();
     const { deletingOpen, setDeletingOpen, setLoading } = useStatesContext();
 
     const handleDeleteById = async (id: string) => {
         setLoading(true);
-        switch (deletingOpen.type) {
-            case "Task":
-                try {
-                    await deleteTaskById(id).then(() => {
-                    }
-                    );
-                } catch (error) {
-                }
-                break;
-            case "Note":
-                try {
-                    await deleteNoteById(id)
-                } catch (error) {
-                    console.log('Error deleting Note:', error);
-                }
-                break;
-            default:
-                break;
+        try {
+            switch (deletingOpen.type) {
+                case "Task":
+                    await deleteTaskById(id);
+                    break;
+                case "Note":
+                    await deleteNoteById(id);
+                    break;
+                default:
+                    break;
+            }
+        } catch (error) {
+            console.error(`Error deleting ${deletingOpen.type}:`, error); // More specific error message
+            // Consider showing an error message to the user
+        } finally {
+            setLoading(false); // Make sure to set loading to false in finally
+            setDeletingOpen({ isOpen: false, id: "", type: null });
         }
-        setDeletingOpen({ isOpen: false, id: "", type: null });
-    }
+    };
+
+    const styles = createStyles(theme as "light" | "dark");
 
     return (
-        <View style={{
+        <View style={styles.container}>
+            <Text style={styles.title}>Deleting...</Text>
+            <Text style={styles.message}>
+                Do you really want to delete this {deletingOpen.type}?
+            </Text>
+            <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={() => setDeletingOpen({ isOpen: false, id: "", type: null })}
+                >
+                    <Text style={styles.buttonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleDeleteById(deletingOpen.id)}
+                >
+                    <Text style={styles.buttonText}>Delete</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+    );
+};
+
+const createStyles = (theme: 'light' | 'dark') =>
+    StyleSheet.create({
+        container: {
             height: "25%",
-            paddingVertical: 3,
             width: "90%",
             position: "absolute",
             top: 250,
@@ -50,73 +74,47 @@ export const DeletingPopUp = () => {
             padding: 10,
             borderRadius: 16,
             justifyContent: "center",
-            backgroundColor: theme == "light" ? Colors.light.primary2 : Colors.dark.primary2,
+            backgroundColor: theme === "light" ? Colors.light.primary2 : Colors.dark.primary2,
             zIndex: 100,
-        }}>
-            <Text
-                style={{
-                    fontFamily: "Kavivanar",
-                    fontSize: 30,
-                    textAlign: "center",
-                    color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
-                }}>
-                Deleting...
-            </Text>
-            <Text
-                style={{
-                    fontFamily: "Kavivanar",
-                    fontSize: 15,
-                    textAlign: "center",
-                    color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
-                }}>
-                Do you really want to delete this {deletingOpen.type}?
-            </Text>
-            <View
-                style={{
-                    flexDirection: "row",
-                    justifyContent: "space-around",
-                    height: 50,
-                    alignItems: "center"
-                }}>
-                <TouchableOpacity
-                    style={{
-                        width: 90,
-                        height: 40,
-                        backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.background2,
-                        borderRadius: 16
-                    }}
-                    onPress={() => setDeletingOpen({ isOpen: false, id: "", type: null })}>
-                    <Text
-                        style={{
-                            fontFamily: "Cagliostro",
-                            textAlign: "center",
-                            marginVertical: "auto",
-                            fontSize: 20,
-                            color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
-                        }}>
-                        Cancel
-                    </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={{
-                        width: 90,
-                        height: 40,
-                        backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.background2,
-                        borderRadius: 16
-                    }}
-                    onPress={() => handleDeleteById(deletingOpen.id)}>
-                    <Text
-                        style={{
-                            fontFamily: "Cagliostro",
-                            textAlign: "center",
-                            marginVertical: "auto",
-                            fontSize: 20,
-                            color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
-                        }}>
-                        Delete
-                    </Text>
-                </TouchableOpacity>
-            </View>
-        </View>
-    )
-};
+        },
+        title: {
+            fontFamily: "Kavivanar",
+            fontSize: 30,
+            textAlign: "center",
+            color: theme === "light" ? Colors.text.textDark : Colors.text.textLight,
+        },
+        message: {
+            fontFamily: "Kavivanar",
+            fontSize: 15,
+            textAlign: "center",
+            color: theme === "light" ? Colors.text.textDark : Colors.text.textLight,
+        },
+        buttonContainer: {
+            flexDirection: "row",
+            justifyContent: "space-around",
+            height: 50,
+            alignItems: "center",
+        },
+        cancelButton: {
+            width: 90,
+            height: 40,
+            backgroundColor: theme === "light" ? Colors.light.secondary : Colors.dark.background2,
+            borderRadius: 16,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        deleteButton: {
+            width: 90,
+            height: 40,
+            backgroundColor: theme === "light" ? Colors.light.secondary : Colors.dark.background2,
+            borderRadius: 16,
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+        buttonText: {
+            fontFamily: "Cagliostro",
+            textAlign: "center",
+            fontSize: 20,
+            color: theme === "light" ? Colors.text.textDark : Colors.text.textLight,
+        },
+    });
