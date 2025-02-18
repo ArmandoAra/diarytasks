@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import Task from '../../components/task/task';
 
@@ -9,22 +9,33 @@ import { formatDateToString } from '@/Utils/helpFunctions';
 import Entypo from '@expo/vector-icons/Entypo';
 import { useThemeContext } from '@/context/ThemeProvider';
 import { CreateNewTask } from '../createTask/createTask';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useStatesContext } from '@/context/StatesProvider';
+import Loader from '@/components/loader/loader';
+import { useFocusEffect } from 'expo-router';
 
 interface TasksContainerProps { } // Define props if needed
 
 const TasksContainer: React.FC<TasksContainerProps> = () => {
     const [sortOption, setSortOption] = useState<SortOption>("All");
-    const { tasks, day } = useGlobalContext();
+    const { tasks, day, setTasks } = useGlobalContext();
     const { theme } = useThemeContext();
-    const [sortedTasks, setSortedTasks] = useState<CreateTaskProps[]>(tasks);
+    const { loading, setEditTaskOpen, setCreateTaskOpen } = useStatesContext();
 
     useEffect(() => {
         let filteredTasks = tasks;
         if (sortOption !== 'All') {
             filteredTasks = tasks.filter(task => task.status === sortOption);
         }
-        setSortedTasks(filteredTasks);
+        setTasks(filteredTasks);
     }, [sortOption, tasks]);
+
+    useFocusEffect(
+        useCallback(() => {
+            setEditTaskOpen({ isOpen: false, id: "" })
+            setCreateTaskOpen(false);
+        }, [day])
+    );
 
 
     const styles = createStyles(theme as "light" | "dark"); // Type the theme
@@ -55,7 +66,7 @@ const TasksContainer: React.FC<TasksContainerProps> = () => {
                 />
             </View>
             <ScrollView style={styles.scrollView}>
-                {sortedTasks.map(task => (
+                {!loading ? tasks.map(task => (
                     <Task
                         key={task.id}
                         id={task.id}
@@ -65,7 +76,8 @@ const TasksContainer: React.FC<TasksContainerProps> = () => {
                         status={task.status}
                         date={task.date || ""}
                     />
-                ))}
+                )) : <Loader />
+                }
                 <CreateNewTask />
             </ScrollView>
         </View>

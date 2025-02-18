@@ -15,22 +15,19 @@ interface IFavToggleProps {
 }
 
 const Favorite = ({ id, isFavorite }: IFavToggleProps) => {
-    const { day, setDayNotes } = useGlobalContext();
-    const { setLoading } = useStatesContext();
+    const { setDayNotes, dayNotes } = useGlobalContext();
 
-    const handleFavoriteToggle = (fav: number) => {
-        setLoading(true)
-        updateFavorite(id, fav)
-        const fetchNotesDay = async () => {
-            const response = await getNotesByDate(day);
-            if (response.success && response.data) {
-                setDayNotes(response.data);
-            } else {
-                console.log('An error occurred while fetching notes.');
-            }
-        };
+    const handleFavoriteToggle = async (fav: number) => {
+        const dayNotesWidthFavoriteChanged = dayNotes.map(note =>
+            note.id === id ? { ...note, isFavorite: (note.isFavorite == 0) ? 1 : 0 } : note
+        );
+        setDayNotes(dayNotesWidthFavoriteChanged)
+        const result = await updateFavorite(id, fav);
 
-        fetchNotesDay();
+        if (!result) {
+            console.log("Something went wrong updating favorite note")
+        }
+
     };
 
     return (

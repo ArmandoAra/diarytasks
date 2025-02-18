@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 
 import Note from '@/components/note/note';
 import EditNoteScreen from '@/containers/editNote/editNote';
@@ -15,12 +16,13 @@ import { useStatesContext } from '@/context/StatesProvider';
 
 import { formatDateToString } from '@/Utils/helpFunctions';
 import { Colors } from '@/constants/Colors';
+import Loader from '@/components/loader/loader';
 
 interface NotesTabProps { } // Define props if needed
 
 const NotesTab: React.FC<NotesTabProps> = () => {
   const { day, dayNotes, setDayNotes } = useGlobalContext();
-  const { loading, setLoading, editNoteOpen, deletingOpen } = useStatesContext();
+  const { loading, setLoading, editNoteOpen, deletingOpen, setEditNoteOpen, setCreateNoteOpen } = useStatesContext();
   const { theme } = useThemeContext();
 
   useEffect(() => {
@@ -37,7 +39,15 @@ const NotesTab: React.FC<NotesTabProps> = () => {
     };
 
     fetchNotes();
-  }, [day, setDayNotes]); // Add setDayNotes to dependency array
+  }, [day]); // Add setDayNotes to dependency array
+
+  //Close the edit and Create note when leave the notes.
+  useFocusEffect(
+    useCallback(() => {
+      setEditNoteOpen({ isOpen: false, id: "" })
+      setCreateNoteOpen(false);
+    }, [day])
+  );
 
 
   const styles = createStyles(theme as "light" | "dark");
@@ -52,7 +62,7 @@ const NotesTab: React.FC<NotesTabProps> = () => {
       {editNoteOpen.isOpen && <EditNoteScreen />}
       <DayChangerContainer />
       <View style={styles.notesContainer}>
-        <FlatList
+        {loading ? <Loader /> : <FlatList
           data={dayNotes}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
@@ -66,7 +76,7 @@ const NotesTab: React.FC<NotesTabProps> = () => {
           numColumns={2}
           columnWrapperStyle={styles.columnWrapper}
           ListFooterComponent={<CreateNote />}
-        />
+        />}
       </View>
     </View>
   );

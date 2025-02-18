@@ -80,7 +80,7 @@ const Home = () => {
             fetchData();
         }
 
-    }, [day, dbLoaded]); // Add dbLoaded as a dependency
+    }, [day, dbLoaded]);
 
     useEffect(() => {
         const backAction = () => {
@@ -104,7 +104,7 @@ const Home = () => {
 
     return (
         <>
-            <StatusBar translucent backgroundColor={Colors.light.primary} barStyle={'light-content'} />
+            <StatusBar translucent backgroundColor={theme == "light" ? Colors.light.primary : Colors.dark.background2} barStyle={theme == "light" ? 'dark-content' : "light-content"} />
             {editTaskOpen.isOpen && <EditTaskScreen />}
             {(deletingOpen.isOpen && deletingOpen.type == "Task") && <DeletingPopUp />}
             {appLoading

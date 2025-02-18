@@ -7,22 +7,26 @@ import { useThemeContext } from '@/context/ThemeProvider';
 
 import { deleteTaskById } from '@/db/taskDb';
 import { deleteNoteById } from '@/db/noteDb';
+import { useGlobalContext } from '@/context/GlobalProvider';
+import { set } from 'astro:schema';
 
 interface DeletingPopUpProps { } // Define props if needed
 
 export const DeletingPopUp: React.FC<DeletingPopUpProps> = () => {
     const { theme } = useThemeContext();
+    const { dayNotes, setDayNotes, tasks, setTasks } = useGlobalContext();
     const { deletingOpen, setDeletingOpen, setLoading } = useStatesContext();
 
     const handleDeleteById = async (id: string) => {
-        setLoading(true);
         try {
             switch (deletingOpen.type) {
                 case "Task":
                     await deleteTaskById(id);
+                    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id)); //remove task from tasks state array
                     break;
                 case "Note":
                     await deleteNoteById(id);
+                    setDayNotes((prevDayNotes) => prevDayNotes.filter((note) => note.id !== id)); //remove note from dayNotes state array
                     break;
                 default:
                     break;
@@ -30,10 +34,9 @@ export const DeletingPopUp: React.FC<DeletingPopUpProps> = () => {
         } catch (error) {
             console.error(`Error deleting ${deletingOpen.type}:`, error); // More specific error message
             // Consider showing an error message to the user
-        } finally {
-            setLoading(false); // Make sure to set loading to false in finally
-            setDeletingOpen({ isOpen: false, id: "", type: null });
         }
+        setDeletingOpen({ isOpen: false, id: "", type: null });
+
     };
 
     const styles = createStyles(theme as "light" | "dark");

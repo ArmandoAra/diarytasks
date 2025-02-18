@@ -10,7 +10,7 @@ import {
 
 import { en, registerTranslation } from 'react-native-paper-dates';
 import { useGlobalContext } from '@/context/GlobalProvider';
-import { createNote } from '@/db/noteDb';
+import { createNote, getNotesByDate } from '@/db/noteDb';
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
 import { AntDesign, Fontisto } from '@expo/vector-icons';
 import { Colors } from "@/constants/Colors";
@@ -23,8 +23,8 @@ registerTranslation('en', en);
 interface CreateNotePropsInterface { } // Define props if needed
 
 const CreateNote: React.FC<CreateNotePropsInterface> = () => {
-    const { day } = useGlobalContext();
-    const { setCreateNoteOpen, createNoteOpen, setLoading } = useStatesContext();
+    const { day, setDayNotes } = useGlobalContext();
+    const { setCreateNoteOpen, createNoteOpen, } = useStatesContext();
     const { theme } = useThemeContext();
 
     const initialData: CreateNoteProps = {
@@ -50,21 +50,20 @@ const CreateNote: React.FC<CreateNotePropsInterface> = () => {
         if (!note.message) {
             return Alert.alert("Message is required", "Please enter a message for the note.");
         }
-
-        setLoading(true);
         try {
-            await createNote(note);
-            setNote(initialData); // Reset the form
-            setCreateNoteOpen(false);
+            const result = await createNote(note);
+            if (result) {
+                getNotesByDate(day).then((notes) => setDayNotes(notes.data as CreateNoteProps[]));
+                setNote(initialData)
+            }
         } catch (error) {
-            console.error("Error creating note:", error);
-            // Consider showing an error message to the user
+            console.log(error);
         } finally {
-            setLoading(false);
+            setCreateNoteOpen(false);
         }
     };
 
-    const handleNotePress = () => {
+    const handleCreateNotePress = () => {
         if (note.message === "" && createNoteOpen) {
             return setCreateNoteOpen(false);
         }
@@ -136,7 +135,7 @@ const CreateNote: React.FC<CreateNotePropsInterface> = () => {
             )}
 
             <View style={styles.actionButtonContainer}>
-                <TouchableOpacity onPress={handleNotePress} style={styles.addButton}>
+                <TouchableOpacity onPress={handleCreateNotePress} style={styles.addButton}>
                     <AntDesign name="pluscircle" size={50} color={theme == "light" ? Colors.text.textDark : Colors.text.textLight} />
                 </TouchableOpacity>
                 {createNoteOpen && (
@@ -153,6 +152,8 @@ const createStyles = (theme: 'light' | 'dark') =>
     StyleSheet.create({
         container: {
             flex: 1,
+            marginBottom: 120,
+
         },
         noteCard: {
             backgroundColor: theme === "light" ? Colors.light.secondary2 : Colors.dark.primary2,

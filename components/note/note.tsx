@@ -34,7 +34,7 @@ const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite }: NoteProps
                                 y1="19"
                                 x2="100%"
                                 y2="20"
-                                stroke={theme === "light" ? "rgba(8, 8, 9, 0.1)" : "rgba(162, 160, 160, 0.5)"} // Use dynamic line color
+                                stroke={theme === "light" ? "rgba(8, 8, 9, 0.1)" : "rgba(162, 160, 160, 0.5)"}
                                 strokeWidth="1"
                             />
                         </Svg>
@@ -48,6 +48,7 @@ const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite }: NoteProps
 
                 <View style={styles.actions}>
                     <Favorite isFavorite={isFavorite} id={id} />
+
                     <TouchableOpacity
                         style={styles.actionButton}
                         onPress={() => setEditNoteOpen({ isOpen: true, id })}
@@ -85,7 +86,8 @@ const createStyles = (theme: 'light' | 'dark') =>
             overflow: "hidden",
         },
         content: {
-            flexDirection: "row",
+            // flexDirection: "column",
+            height: "100%",
             justifyContent: "space-between",
             paddingHorizontal: 10,
             paddingTop: 16, // Adjust paddingTop based on title presence
@@ -98,8 +100,9 @@ const createStyles = (theme: 'light' | 'dark') =>
         message: {
             fontFamily: "Kavivanar",
             fontSize: 12,
+            width: "80%",
             lineHeight: 22.1,
-            paddingHorizontal: 10,
+
             color: theme === "light" ? Colors.text.textDark : Colors.text.textLight,
             flex: 1, // Allow message to take up available space
             marginBottom: 12,

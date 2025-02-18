@@ -3,15 +3,13 @@ import {
     View,
     Text,
     TouchableOpacity,
-    Pressable,
+    StyleSheet,
 } from 'react-native';
-// Styles
 
 // Interfaces
 import { CreateTaskProps } from '../../interfaces/TasksInterfaces';
-import { Link } from 'expo-router';
 
-import { deleteTaskById, getAllTasks, getTasksByDate, updateTaskStatus } from '@/db/taskDb';
+import { updateTaskStatus } from '@/db/taskDb';
 import { useGlobalContext } from '@/context/GlobalProvider';
 
 // Utils
@@ -35,113 +33,74 @@ const Task = ({
     date,
     status
 }: CreateTaskProps) => {
-    const { day, setTasks } = useGlobalContext();
+    const { setTasks, tasks } = useGlobalContext();
     const { setEditTaskOpen, setDeletingOpen } = useStatesContext();
     const { theme } = useThemeContext();
 
-
-
-    // Logica para el doble  tap de la tarea
     const [lastTap, setLastTap] = useState(0);
     const DOUBLE_TAP_DELAY = 300;
+
     const handleDoubleTap = async () => {
         const now = Date.now();
         if (now - lastTap < DOUBLE_TAP_DELAY) {
-            const response = await updateTaskStatus(id, status);
-            if (response.success) {
-                getTasksByDate(day).then((tasks) => setTasks(tasks.data as CreateTaskProps[]))
+            const newStatus = status === "ToDo" ? "Completed" : "ToDo";
+            const tasksWithStatusChange: CreateTaskProps[] = tasks.map(task =>
+                task.id === id ? { ...task, status: newStatus } : task
+            );
 
-            } else {
+            setTasks(tasksWithStatusChange);
+
+            try {
+                const response = await updateTaskStatus(id, newStatus);
+                if (!response.success) {
+                    alert('Something went wrong updating the task status');
+                }
+            } catch (error) {
+                console.error("Error updating task status:", error);
                 alert('Something went wrong updating the task status');
             }
         }
         setLastTap(now);
     };
 
+    const styles = createStyles(theme as "light" || "Dark");
+
     return (
         <TouchableOpacity
             onPress={handleDoubleTap}
-            style={{
-                marginVertical: 5,
-                padding: 5,
-                borderRadius: 16,
-                backgroundColor: theme == "light" ? Colors.light.background : Colors.dark.ternary,
-                elevation: 5
-            }}
+            style={styles.taskContainer}
         >
             {/* First Line */}
-            <View
-                style={{
-                    flexDirection: "row",
-                    width: "100%",
-                    justifyContent: "space-between"
-                }} >
-                <View style={{ flexDirection: "row", gap: 10 }}>
+            <View style={styles.firstLine}>
+                <View style={styles.firstLineStart}>
                     <Text>{StatusIcon(status)}</Text>
-                    <Text style={{
-                        fontFamily: "Kavivanar",
-                        color: theme == "light" ? Colors.text.textDark : Colors.text.textLight
-                    }}>
+                    <Text style={styles.titleText}>
                         {title.toLocaleUpperCase()}
                     </Text>
+                    <Text style={styles.dateText}>{date}</Text>
                 </View>
-                <Text
-                    style={{
-                        fontFamily: "Kavivanar",
-                        color: theme == "light" ? Colors.text.textDark : Colors.text.textLight,
-                        backgroundColor: priorityColorHandler(priority),
-                    }}>
+                <Text style={[styles.priorityText, { backgroundColor: priorityColorHandler(priority) }]}>
                     {priority}
                 </Text>
             </View>
             {/*Second Line  */}
 
-            <Text style={{
-                padding: 5,
-                fontFamily: "Kavivanar",
-                color: theme == "light" ? Colors.text.textDark : Colors.text.textLight
-            }}>{description}</Text>
+            <Text style={styles.descriptionText}>{description}</Text>
 
-
-            <View style={{ flexDirection: "row" }}>
-                <Text
-                    style={{
-                        textAlign: "center",
-                        width: "100%",
-                        fontFamily: "Kavivanar",
-                        fontSize: 10,
-                        opacity: 0.7,
-                        color: theme == "light" ? Colors.text.textDark : Colors.text.textLight
-                    }}>{status == "ToDo" && "Double Tap to Complete"}</Text>
-                <View style={{ flexDirection: "row", position: "absolute", right: 0, bottom: -10, gap: 10 }}>
+            <View style={styles.lastLine}>
+                <Text style={styles.doubleTapText}>
+                    {status === "ToDo" ? "Double Tap to Complete" : ""}
+                </Text>
+                <View style={styles.lastLineEnd}>
                     <TouchableOpacity
                         onPress={() => setEditTaskOpen({ isOpen: true, id })}
-                        style={{
-                            backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.secondary2,
-                            width: 36,
-                            height: 36,
-                            justifyContent: "center",
-                            alignItems: "center",
-                            borderRadius: 16
-                        }}>
-                        <FontAwesome6 name="pen-to-square" size={21} color={theme == "light" ? Colors.text.textDark : Colors.text.textLight} />
+                        style={styles.editButton}>
+                        <FontAwesome6 name="pen-to-square" size={21} color={theme === "light" ? Colors.text.textDark : Colors.text.textLight} />
                     </TouchableOpacity>
                     <TouchableOpacity
-                        onPress={() => {
-                            setDeletingOpen({ isOpen: true, id, type: "Task" }
-                            )
-                        }}
-                        style={{
-                            backgroundColor: theme == "light" ? Colors.light.secondary : Colors.dark.secondary2,
-                            width: 36,
-                            height: 36,
-                            justifyContent: "center",
-                            alignItems: "center",
-                            borderRadius: 16
-                        }}>
-                        <Text>
-                            <Ionicons name="trash-bin" size={24} color={theme == "light" ? Colors.text.textDark : Colors.text.textLight} />
-                        </Text>
+                        onPress={() => setDeletingOpen({ isOpen: true, id, type: "Task" })}
+                        style={styles.deleteButton}>
+                        <Ionicons name="trash-bin" size={24} color={theme === "light" ? Colors.text.textDark : Colors.text.textLight} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -151,6 +110,75 @@ const Task = ({
     );
 };
 
+const createStyles = (theme: 'light' | 'dark') => StyleSheet.create({
+    taskContainer: {
+        marginVertical: 5,
+        padding: 5,
+        borderRadius: 16,
+        backgroundColor: theme === "light" ? Colors.light.background : Colors.dark.ternary,
+        elevation: 5
+    },
+    firstLine: {
+        flexDirection: "row",
+        width: "100%",
+        justifyContent: "space-between"
+    },
+    firstLineStart: {
+        flexDirection: "row",
+        gap: 10
+    },
+    titleText: {
+        fontFamily: "Kavivanar",
+        color: theme === "light" ? Colors.text.textDark : Colors.text.textLight,
+        width: "50%",
+    },
+    dateText: {
+        fontFamily: "Kavivanar",
+        color: theme === "light" ? Colors.text.textDark : Colors.text.textLight,
+    },
+    priorityText: {
+        fontFamily: "Kavivanar",
+        color: theme === "light" ? Colors.text.textDark : Colors.text.textLight,
+    },
+    descriptionText: {
+        padding: 5,
+        fontFamily: "Kavivanar",
+        color: theme === "light" ? Colors.text.textDark : Colors.text.textLight
+    },
+    lastLine: {
+        flexDirection: "row"
+    },
+    doubleTapText: {
+        textAlign: "center",
+        width: "100%",
+        fontFamily: "Kavivanar",
+        fontSize: 10,
+        opacity: 0.7,
+        color: theme === "light" ? Colors.text.textDark : Colors.text.textLight
+    },
+    lastLineEnd: {
+        flexDirection: "row",
+        position: "absolute",
+        right: 0,
+        bottom: -10,
+        gap: 10
+    },
+    editButton: {
+        backgroundColor: theme === "light" ? Colors.light.secondary : Colors.dark.secondary2,
+        width: 36,
+        height: 36,
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: 16
+    },
+    deleteButton: {
+        backgroundColor: theme === "light" ? Colors.light.secondary : Colors.dark.secondary2,
+        width: 36,
+        height: 36,
+        justifyContent: "center",
+        alignItems: "center",
+        borderRadius: 16
+    }
+});
+
 export default Task;
-
-

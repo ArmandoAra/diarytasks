@@ -74,7 +74,7 @@ export const CreateNewTask = () => {
     };
 
     return (
-        <View style={{ width: "100%" }}>
+        <View style={{ width: "100%", marginBottom: 120 }}>
             <View
                 style={{
                     flexDirection: createTaskOpen ? "column" : "row",

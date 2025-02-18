@@ -10,16 +10,18 @@ import { useFocusEffect } from 'expo-router';
 
 import { Colors } from '@/constants/Colors';
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
-import { getFavoritesNotes, updateFavorite } from '@/db/noteDb';
+import { getFavoritesNotes, updateFavorite, getNotesByDate } from '@/db/noteDb';
 import Svg, { Line } from 'react-native-svg';
 import { Fontisto } from '@expo/vector-icons';
 import Loader from '@/components/loader/loader';
 import { useStatesContext } from '@/context/StatesProvider';
 import { useThemeContext } from '@/context/ThemeProvider';
+import { useGlobalContext } from '@/context/GlobalProvider';
 
 const FavoritesTab = () => {
     const { loading, setLoading } = useStatesContext();
     const { theme } = useThemeContext();
+    const { day, dayNotes, setDayNotes } = useGlobalContext();
 
     const [favoritesNotes, setFavoritesNotes] = useState<CreateNoteProps[]>([]);
 
@@ -34,19 +36,31 @@ const FavoritesTab = () => {
                 }
             };
             fetchFavorites();
-        }, [])
+            setLoading(false);
+        }, [favoritesNotes.length])
     );
 
     const handleFavoriteToggle = async (id: string) => {
-        setLoading(true);
+
         try {
             await updateFavorite(id, 0);
             setFavoritesNotes(favoritesNotes.filter(note => note.id !== id));
+
+            let variab = favoritesNotes.map(note => {
+                if (note.id === id) {
+                    return note.date;
+                }
+            })
+
+            if (variab.includes(day)) {
+                let result = await getNotesByDate(day);
+                if (result) setDayNotes(result.data as CreateNoteProps[])
+            }
         } catch (error) {
             console.error("Error toggling favorite:", error);
-        } finally {
-            setLoading(false);
         }
+        setLoading(false);
+
     };
 
     const styles = createStyles(theme as "light" | "dark");

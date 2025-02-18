@@ -136,7 +136,7 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = () => {
       <View style={styles.actionButtonContainer}>
         {data.message && (
           <TouchableOpacity onPress={handleSubmit} style={styles.saveButton}>
-            <AntDesign name="pluscircle" size={50} color={theme == "light" ? Colors.text.textDark : Colors.text.textLight} />
+            <AntDesign name="pluscircle" size={50} color={Colors.text.textLight} />
           </TouchableOpacity>
         )}
       </View>
