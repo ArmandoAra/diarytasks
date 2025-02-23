@@ -12,17 +12,15 @@ import { GlobalProvider } from '@/context/GlobalProvider';
 import { ThemeProvider, useThemeContext } from '@/context/ThemeProvider';
 import { Colors } from '@/constants/Colors';
 
-// TABS
 import Home from './screens/Home/index';
 import CreateNoteTab from './(tabs)/Notes/notes';
 import FavoritesTab from './(tabs)/Favorites/favorites';
 import MapTab from './(tabs)/Map/map';
 
-//Screens
+
 import SettingsScreen from './screens/settings/settings';
 import { StatesProvider } from '@/context/StatesProvider';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 
@@ -106,23 +104,22 @@ const HomeTabs = () => {
     );
 }
 
-// Configuración del Stack Navigator
+
 const Stack = createStackNavigator();
 const AppNavigator = () => (
     <Stack.Navigator>
-        {/* Tabs principales */}
+
         <Stack.Screen name="Home" component={HomeTabs} options={{ headerShown: false }} />
-        {/* Pantallas fuera del TabNavigator */}
+
         <Stack.Screen name="Settings" component={SettingsScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
 );
 
-// Renderizar la navegación en la aplicación
 export default function App() {
     const [loaded] = useFonts({
-        "Pacifico": require('../assets/fonts/Pacifico-Regular.ttf'), // Big titles
-        "Kavivanar": require('../assets/fonts/Kavivanar-Regular.ttf'), // Normal Texts
-        "Cagliostro": require('../assets/fonts/Cagliostro-Regular.ttf'), // Buttons and Mini titles
+        "Pacifico": require('../assets/fonts/Pacifico-Regular.ttf'),
+        "Kavivanar": require('../assets/fonts/Kavivanar-Regular.ttf'),
+        "Cagliostro": require('../assets/fonts/Cagliostro-Regular.ttf'),
     });
 
     useEffect(() => {

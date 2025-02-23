@@ -1,15 +1,5 @@
-
 import * as SQLite from 'expo-sqlite';
-import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
-interface User {
-    id: string;
-    name: string;
-}
-
-
-// User
-// Insert User
 export async function createUser(
     name: string,
 ) {
@@ -58,7 +48,6 @@ export async function updateUser(
         return { success: false, message: 'Error updating User', error };
     }
 }
-
 
 export async function getUser(): Promise<string> {
     const db = await SQLite.openDatabaseAsync('diaryTasks.db');

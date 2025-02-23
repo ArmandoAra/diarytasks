@@ -3,7 +3,6 @@ import * as SQLite from 'expo-sqlite';
 
 // Utils
 import { processTasks, getUniqueDates } from '@/Utils/helpFunctions';
-import { Try } from 'expo-router/build/views/Try';
 
 interface AllDaysWithDataProps {
     date: string;
@@ -100,28 +99,3 @@ export async function getSortedDaysWithNotesAndTasks(): Promise<{
         return [];
     }
 }
-
-interface SortedDataProps {
-    date: string;
-    allTasksCompleted: boolean;
-    haveNote: boolean;
-    day: string;
-    month: string;
-    year: string;
-}
-
-
-
-var tasks = [{ "allTasksCompleted": false, "date": "13-02-2025" },
-{ "allTasksCompleted": false, "date": "14-02-2025" },
-{ "allTasksCompleted": false, "date": "15-02-2025" }]
-
-
-var notes = ["12-02-2025",
-    "", "14-02-2025",
-    "15-02-2025",
-    "16-02-2025"]
-
-var result = [{ "allTasksCompleted": false, "date": "13-02-2025", "day": "13", "haveNote": false, "month": "February", "year": "2025" },
-{ "allTasksCompleted": false, "date": "14-02-2025", "day": "14", "haveNote": true, "month": "February", "year": "2025" },
-{ "allTasksCompleted": false, "date": "15-02-2025", "day": "15", "haveNote": true, "month": "February", "year": "2025" }] 

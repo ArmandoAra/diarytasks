@@ -1,16 +1,9 @@
-import * as FileSystem from 'expo-file-system';
 
 // Db
 import * as SQLite from 'expo-sqlite';
 
-
 // Interfaces
 import { CreateTaskProps, Status } from '@/interfaces/TasksInterfaces';
-import { formatDate, getUniqueDates, processTasks } from '@/Utils/helpFunctions';
-
-
-// createTaskByTemplateId()
-
 
 export async function createTask(data: CreateTaskProps) {
     const db = await SQLite.openDatabaseAsync('diaryTasks.db');

@@ -8,14 +8,13 @@ import { useThemeContext } from '@/context/ThemeProvider';
 import { deleteTaskById } from '@/db/taskDb';
 import { deleteNoteById } from '@/db/noteDb';
 import { useGlobalContext } from '@/context/GlobalProvider';
-import { set } from 'astro:schema';
 
 interface DeletingPopUpProps { } // Define props if needed
 
 export const DeletingPopUp: React.FC<DeletingPopUpProps> = () => {
     const { theme } = useThemeContext();
-    const { dayNotes, setDayNotes, tasks, setTasks } = useGlobalContext();
-    const { deletingOpen, setDeletingOpen, setLoading } = useStatesContext();
+    const { setDayNotes, setTasks } = useGlobalContext();
+    const { deletingOpen, setDeletingOpen } = useStatesContext();
 
     const handleDeleteById = async (id: string) => {
         try {

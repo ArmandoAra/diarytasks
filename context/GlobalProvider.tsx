@@ -1,14 +1,13 @@
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
 import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
-import { formatDate, formatDateToString } from '@/Utils/helpFunctions';
-import React, { createContext, useContext, useState, useEffect, ReactNode, FC } from 'react';
+import { formatDate } from '@/Utils/helpFunctions';
+import React, { createContext, useContext, useState, ReactNode, FC } from 'react';
 
 
 interface User {
     id: string;
     name: string;
 }
-
 
 interface GlobalContextProps {
     user: User;
@@ -20,7 +19,6 @@ interface GlobalContextProps {
     setTasks: React.Dispatch<React.SetStateAction<CreateTaskProps[]>>;
     setDayNotes: React.Dispatch<React.SetStateAction<CreateNoteProps[]>>;
 }
-
 
 const GlobalContext = createContext<GlobalContextProps>({
     user: { id: "", name: "" },
@@ -39,17 +37,11 @@ interface GlobalProviderProps {
     children: ReactNode;
 }
 
-
-
 export const GlobalProvider: FC<GlobalProviderProps> = ({ children }) => {
-
-    const [loading, setLoading] = useState<boolean>(false);
     const [user, setUser] = useState<User>({ id: "", name: "" });
     const [day, setDay] = useState<string>(formatDate(new Date()));
     const [tasks, setTasks] = useState<CreateTaskProps[]>([])
     const [dayNotes, setDayNotes] = useState<CreateNoteProps[]>([])
-
-
 
     return (
         <GlobalContext.Provider

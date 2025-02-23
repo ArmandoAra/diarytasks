@@ -18,7 +18,7 @@ import { en, registerTranslation } from 'react-native-paper-dates'
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 import { getTasksByDate, updateTaskById } from '@/db/taskDb';
-import { AntDesign, FontAwesome, MaterialIcons } from '@expo/vector-icons';
+import { AntDesign, FontAwesome } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { useStatesContext } from '@/context/StatesProvider';
 import { useThemeContext } from '@/context/ThemeProvider';
@@ -28,7 +28,6 @@ const EditTaskScreen = () => {
   const { theme } = useThemeContext();
   const { tasks, setTasks } = useGlobalContext();
   const { setLoading, setEditTaskOpen, editTaskOpen } = useStatesContext();
-  const [tasksError, setTasksError] = useState<string>("");
 
   const [data, setData] = useState<CreateTaskProps>(
     {
@@ -42,7 +41,6 @@ const EditTaskScreen = () => {
   );
 
   useEffect(() => {
-
     const selectedTask = searchTaskById(editTaskOpen.id, tasks);
     setData((prevData) => ({
       ...prevData,
@@ -74,7 +72,7 @@ const EditTaskScreen = () => {
         setTasks(response.data);
         setLoading(false);
       } else {
-        setTasksError(response.message || 'An error occurred while fetching tasks.');
+        console.log("Error at edit Task")
         setLoading(false);
       }
     };
@@ -184,7 +182,6 @@ const EditTaskScreen = () => {
           multiline
           textAlignVertical="top"
         />
-
       </View>
 
       <View
@@ -198,12 +195,9 @@ const EditTaskScreen = () => {
         }}>
         {data.description && <TouchableOpacity onPress={handleSubmit} style={{ right: 0, position: "relative" }} >
           <AntDesign name="pluscircle" size={50} color={theme == "light" ? Colors.light.secondary : Colors.dark.secondary2} />
-
         </TouchableOpacity>}
       </View>
-
     </ScrollView >
-
   );
 };
 

@@ -40,7 +40,7 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = () => {
 
   useEffect(() => {
     const selectedNote = searchNoteById(editNoteOpen.id, dayNotes);
-    if (selectedNote && selectedNote.length > 0) { // Check if selectedNote exists and has data
+    if (selectedNote && selectedNote.length > 0) {
       setData((prevData) => ({
         ...prevData,
         title: selectedNote[0].title,
@@ -50,14 +50,13 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = () => {
         id: selectedNote[0].id, // Include the ID
       }));
     } else {
-      // Handle the case where the note is not found, e.g., reset the form or show a message
       console.warn("Note not found!");
-      setData(initialData); // Or another appropriate action
+      setData(initialData);
     }
-  }, [editNoteOpen.id, dayNotes]); // Add editNoteOpen.id to dependencies
+  }, [editNoteOpen.id, dayNotes]);
 
-  const handleChanges = (key: keyof CreateNoteProps, value: string | number) => {  // Type value correctly
-    setData(prevData => ({ ...prevData, [key]: value })); // No need for conditional update
+  const handleChanges = (key: keyof CreateNoteProps, value: string | number) => {
+    setData(prevData => ({ ...prevData, [key]: value }));
   };
 
   const handleSubmit = async () => {
@@ -72,7 +71,6 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = () => {
       setEditNoteOpen({ isOpen: false, id: "" });
     } catch (error) {
       console.error("Error updating note:", error);
-      // Consider showing an error message to the user
     }
   };
 

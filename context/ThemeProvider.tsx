@@ -1,8 +1,6 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode, FC } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Appearance } from 'react-native';
-import ThemedButton from '../Theme/themedButton/temedButton';
 
 
 interface ThemeContextProps {

@@ -1,15 +1,13 @@
 import { Colors } from "@/constants/Colors";
 import { useGlobalContext } from "@/context/GlobalProvider";
-import { FontAwesome, Ionicons, Octicons } from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import { TouchableOpacity, View, Text, TextInput, StyleSheet } from "react-native";
 import { createUser, updateUser } from "@/db/userDb";
 import { useState, useCallback } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { BottomTabNavProps } from "@/interfaces/types";
 import { useThemeContext } from "@/context/ThemeProvider";
-import { useStatesContext } from "@/context/StatesProvider";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Settings } from '../../../components/settings/settings';
 
 
 const SettingsScreen = () => {

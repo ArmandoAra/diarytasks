@@ -2,12 +2,11 @@ import React, { } from 'react'
 import { TouchableOpacity, View } from 'react-native'
 
 // db
-import { getNotesByDate, updateFavorite } from '@/db/noteDb';
+import { updateFavorite } from '@/db/noteDb';
 import { useGlobalContext } from '@/context/GlobalProvider';
 
 // Icons
 import Fontisto from '@expo/vector-icons/Fontisto';
-import { useStatesContext } from '@/context/StatesProvider';
 
 interface IFavToggleProps {
     id: string;

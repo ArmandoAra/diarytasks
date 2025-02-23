@@ -5,7 +5,6 @@ import {
     StyleSheet,
     TouchableOpacity,
     Alert,
-    ScrollView, // Import ScrollView
 } from 'react-native';
 
 import { en, registerTranslation } from 'react-native-paper-dates';
@@ -20,7 +19,7 @@ import { useThemeContext } from '@/context/ThemeProvider';
 
 registerTranslation('en', en);
 
-interface CreateNotePropsInterface { } // Define props if needed
+interface CreateNotePropsInterface { }
 
 const CreateNote: React.FC<CreateNotePropsInterface> = () => {
     const { day, setDayNotes } = useGlobalContext();
@@ -42,8 +41,8 @@ const CreateNote: React.FC<CreateNotePropsInterface> = () => {
         setNote((prevData) => ({ ...prevData, date: day }));
     }, [day]);
 
-    const handleChanges = (key: keyof CreateNoteProps, value: string | number) => { // Correct type for value
-        setNote(prevData => ({ ...prevData, [key]: value })); // Simplified update
+    const handleChanges = (key: keyof CreateNoteProps, value: string | number) => {
+        setNote(prevData => ({ ...prevData, [key]: value }));
     };
 
     const handleSubmit = async () => {

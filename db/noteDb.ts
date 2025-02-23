@@ -6,8 +6,6 @@ import * as SQLite from 'expo-sqlite';
 
 // Interfaces
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
-import { formatDate } from '@/Utils/helpFunctions';
-
 
 // createTaskByTemplateId()
 

@@ -4,12 +4,11 @@ import Task from '../../components/task/task';
 
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { Colors } from '../../constants/Colors';
-import { CreateTaskProps, SortOption } from '@/interfaces/TasksInterfaces';
+import { SortOption } from '@/interfaces/TasksInterfaces';
 import { formatDateToString } from '@/Utils/helpFunctions';
 import Entypo from '@expo/vector-icons/Entypo';
 import { useThemeContext } from '@/context/ThemeProvider';
 import { CreateNewTask } from '../createTask/createTask';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useStatesContext } from '@/context/StatesProvider';
 import Loader from '@/components/loader/loader';
 import { useFocusEffect } from 'expo-router';
@@ -21,6 +20,8 @@ const TasksContainer: React.FC<TasksContainerProps> = () => {
     const { tasks, day, setTasks } = useGlobalContext();
     const { theme } = useThemeContext();
     const { loading, setEditTaskOpen, setCreateTaskOpen } = useStatesContext();
+
+    const styles = createStyles(theme as "light" | "dark");
 
     useEffect(() => {
         let filteredTasks = tasks;
@@ -38,7 +39,6 @@ const TasksContainer: React.FC<TasksContainerProps> = () => {
     );
 
 
-    const styles = createStyles(theme as "light" | "dark"); // Type the theme
 
     return (
         <View style={styles.container}>
@@ -50,19 +50,19 @@ const TasksContainer: React.FC<TasksContainerProps> = () => {
                     label="All Tasks"
                     selected={sortOption === "All"}
                     onPress={() => setSortOption("All")}
-                    theme={theme as "light" | "dark"} // Type the theme
+                    theme={theme as "light" | "dark"}
                 />
                 <FilterButton
                     label="Completed"
                     selected={sortOption === "Completed"}
                     onPress={() => setSortOption("Completed")}
-                    theme={theme as "light" | "dark"} // Type the theme
+                    theme={theme as "light" | "dark"}
                 />
                 <FilterButton
                     label="To Do"
                     selected={sortOption === "ToDo"}
                     onPress={() => setSortOption("ToDo")}
-                    theme={theme as "light" | "dark"} // Type the theme
+                    theme={theme as "light" | "dark"}
                 />
             </View>
             <ScrollView style={styles.scrollView}>
@@ -88,7 +88,7 @@ interface FilterButtonProps {
     label: string;
     selected: boolean;
     onPress: () => void;
-    theme: 'light' | 'dark'; // Add theme prop
+    theme: 'light' | 'dark';
 }
 
 const FilterButton: React.FC<FilterButtonProps> = ({ label, selected, onPress, theme }) => {

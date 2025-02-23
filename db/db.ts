@@ -1,9 +1,6 @@
 import * as SQLite from 'expo-sqlite';
-
 import * as FileSystem from 'expo-file-system';
-import { Asset } from 'expo-asset'; //Para obtener el Uri de el archivo de la Db
-import { create } from 'react-test-renderer';
-
+import { Asset } from 'expo-asset';
 
 export const loadDatabase = async () => {
 

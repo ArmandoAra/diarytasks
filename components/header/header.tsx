@@ -1,6 +1,6 @@
 import { useGlobalContext } from '@/context/GlobalProvider';
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, OpaqueColorValue } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 import { en, registerTranslation } from 'react-native-paper-dates';
 registerTranslation('en', en);
@@ -20,7 +20,7 @@ const Header: React.FC<HeaderProps> = () => {
     const { theme } = useThemeContext();
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
-    const styles = createStyles(theme as "light" | "dark");  // Type the theme
+    const styles = createStyles(theme as "light" | "dark");
 
     return (
         <View style={styles.headerContainer}>
@@ -49,25 +49,25 @@ const createStyles = (theme: 'light' | 'dark') => StyleSheet.create({
         height: '70%',
         paddingLeft: 30,
         backgroundColor: theme === 'light' ? Colors.light.primary : Colors.dark.background2,
-        justifyContent: 'flex-end', // Alinea el contenido hacia abajo
-        paddingBottom: 10,       // Espacio inferior para el contenido
+        justifyContent: 'flex-end',
+        paddingBottom: 10,
     },
     titleContainer: {
         width: '100%',
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',    // Centra verticalmente los elementos
+        alignItems: 'center',
     },
     titleText: {
         fontSize: 32,
         fontFamily: 'Pacifico',
         color: theme === 'light' ? Colors.text.textDark : Colors.text.textLight,
-        marginBottom: 10,       // Margen inferior para el título
+        marginBottom: 10,
     },
     settingsButton: {
-        marginRight: 20,      // Margen derecho para el botón de configuración
+        marginRight: 20,
     },
-    iconColor: {                // Estilo para el color del icono
+    iconColor: {
         color: theme === 'light' ? Colors.text.textDark : Colors.text.textLight,
     },
     greetingText: {

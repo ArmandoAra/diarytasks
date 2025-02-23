@@ -4,10 +4,10 @@ import { useStatesContext } from "@/context/StatesProvider";
 import { useThemeContext } from "@/context/ThemeProvider";
 import { createTask, getTasksByDate } from "@/db/taskDb";
 import { CreateTaskProps } from "@/interfaces/TasksInterfaces";
-import { AntDesign, FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
+import { FontAwesome5, FontAwesome6 } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useState, useRef, useEffect, } from "react";
-import { TextInput, Alert, View, Pressable, StyleSheet, Text, TouchableOpacity } from "react-native";
+import { TextInput, Alert, View, StyleSheet, TouchableOpacity } from "react-native";
 
 
 const initialData = (day: string): CreateTaskProps => {

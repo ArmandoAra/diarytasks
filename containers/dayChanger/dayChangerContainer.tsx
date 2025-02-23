@@ -45,7 +45,7 @@ const DayChangerContainer: React.FC<DayChangerContainerProps> = () => {
                     break;
             }
         } finally {
-            setLoading(false); // Ensure setLoading(false) is always called
+            setLoading(false);
         }
     };
 
