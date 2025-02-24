@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import Task from '../../components/task/task';
 
@@ -17,18 +17,15 @@ interface TasksContainerProps { } // Define props if needed
 
 const TasksContainer: React.FC<TasksContainerProps> = () => {
     const [sortOption, setSortOption] = useState<SortOption>("All");
-    const { tasks, day, setTasks } = useGlobalContext();
+    const { tasks, day } = useGlobalContext();
     const { theme } = useThemeContext();
-    const { loading, setEditTaskOpen, setCreateTaskOpen } = useStatesContext();
+    const { setEditTaskOpen, setCreateTaskOpen } = useStatesContext();
 
     const styles = createStyles(theme as "light" | "dark");
 
-    useEffect(() => {
-        let filteredTasks = tasks;
-        if (sortOption !== 'All') {
-            filteredTasks = tasks.filter(task => task.status === sortOption);
-        }
-        setTasks(filteredTasks);
+    const filteredTasks = useMemo(() => {
+        if (sortOption === 'All') return tasks;
+        return tasks.filter(task => task.status === sortOption);
     }, [sortOption, tasks]);
 
     useFocusEffect(
@@ -37,8 +34,6 @@ const TasksContainer: React.FC<TasksContainerProps> = () => {
             setCreateTaskOpen(false);
         }, [day])
     );
-
-
 
     return (
         <View style={styles.container}>
@@ -66,7 +61,7 @@ const TasksContainer: React.FC<TasksContainerProps> = () => {
                 />
             </View>
             <ScrollView style={styles.scrollView}>
-                {!loading ? tasks.map(task => (
+                {filteredTasks.map(task => (
                     <Task
                         key={task.id}
                         id={task.id}
@@ -76,7 +71,7 @@ const TasksContainer: React.FC<TasksContainerProps> = () => {
                         status={task.status}
                         date={task.date || ""}
                     />
-                )) : <Loader />
+                ))
                 }
                 <CreateNewTask />
             </ScrollView>
@@ -102,7 +97,6 @@ const FilterButton: React.FC<FilterButtonProps> = ({ label, selected, onPress, t
         </TouchableOpacity>
     );
 };
-
 
 const createStyles = (theme: 'light' | 'dark') =>
     StyleSheet.create({
