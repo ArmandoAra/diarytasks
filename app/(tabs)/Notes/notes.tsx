@@ -17,6 +17,8 @@ import { useStatesContext } from '@/context/StatesProvider';
 import { formatDateToString } from '@/Utils/helpFunctions';
 import { Colors } from '@/constants/Colors';
 import Loader from '@/components/loader/loader';
+import EmptyState from '@/components/emptyState/emptyState';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface NotesTabProps { } // Define props if needed
 
@@ -24,6 +26,7 @@ const NotesTab: React.FC<NotesTabProps> = () => {
   const { day, dayNotes, setDayNotes } = useGlobalContext();
   const { loading, setLoading, editNoteOpen, deletingOpen, setEditNoteOpen, setCreateNoteOpen } = useStatesContext();
   const { theme } = useThemeContext();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     let cancelled = false;
@@ -56,7 +59,7 @@ const NotesTab: React.FC<NotesTabProps> = () => {
   return (
     <View style={styles.container}>
       {deletingOpen.isOpen && deletingOpen.type === "Note" && <DeletingPopUp />}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
         <Text style={styles.headerTitle}>Notes</Text>
         <Text style={styles.headerDate}>{formatDateToString(day)}</Text>
       </View>
@@ -75,7 +78,14 @@ const NotesTab: React.FC<NotesTabProps> = () => {
             />
           )}
           numColumns={2}
-          columnWrapperStyle={styles.columnWrapper}
+          columnWrapperStyle={dayNotes.length ? styles.columnWrapper : undefined}
+          ListEmptyComponent={
+            <EmptyState
+              icon="document-text-outline"
+              title="No notes for this day"
+              hint="Tap the + button to write your first one."
+            />
+          }
           ListFooterComponent={<CreateNote />}
         />}
       </View>
@@ -90,7 +100,7 @@ const createStyles = (theme: 'light' | 'dark') =>
       backgroundColor: theme === "light" ? Colors.light.background : Colors.dark.primary,
     },
     header: {
-      height: 105,
+      paddingBottom: 14,
       backgroundColor: theme === "light" ? Colors.light.primary : Colors.dark.background2,
       justifyContent: 'center', // Center content vertically
       alignItems: 'center',   // Center content horizontally

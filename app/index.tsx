@@ -20,6 +20,7 @@ import MapTab from './(tabs)/Map/map';
 
 import SettingsScreen from './screens/settings/settings';
 import { StatesProvider } from '@/context/StatesProvider';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -130,15 +131,17 @@ export default function App() {
 
 
     return (
-        <SQLiteProvider databaseName='diaryTasks.db'>
-            <ThemeProvider>
-                <GlobalProvider>
-                    <StatesProvider>
-                        <AppNavigator />
-                    </StatesProvider>
-                </GlobalProvider>
-            </ThemeProvider>
-        </SQLiteProvider>
+        <SafeAreaProvider>
+            <SQLiteProvider databaseName='diaryTasks.db'>
+                <ThemeProvider>
+                    <GlobalProvider>
+                        <StatesProvider>
+                            <AppNavigator />
+                        </StatesProvider>
+                    </GlobalProvider>
+                </ThemeProvider>
+            </SQLiteProvider>
+        </SafeAreaProvider>
     );
 };
 

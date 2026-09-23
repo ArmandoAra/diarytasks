@@ -11,6 +11,7 @@ import { useThemeContext } from '@/context/ThemeProvider';
 import { CreateNewTask } from '../createTask/createTask';
 import { useStatesContext } from '@/context/StatesProvider';
 import { useFocusEffect } from 'expo-router';
+import EmptyState from '@/components/emptyState/emptyState';
 
 interface TasksContainerProps { } // Define props if needed
 
@@ -60,6 +61,13 @@ const TasksContainer: React.FC<TasksContainerProps> = () => {
                 />
             </View>
             <ScrollView style={styles.scrollView}>
+                {filteredTasks.length === 0 && (
+                    <EmptyState
+                        icon={sortOption === "All" ? "checkbox-outline" : "filter-outline"}
+                        title={sortOption === "All" ? "No tasks for this day" : `No ${sortOption === "ToDo" ? "pending" : "completed"} tasks`}
+                        hint={sortOption === "All" ? "Tap the + button to add one." : undefined}
+                    />
+                )}
                 {filteredTasks.map(task => (
                     <Task
                         key={task.id}

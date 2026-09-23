@@ -15,7 +15,7 @@ import { getNotesByDate, updateNoteById } from '@/db/noteDb';
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
 import { AntDesign, FontAwesome, Fontisto } from '@expo/vector-icons';
 import { Colors } from "@/constants/Colors";
-import Svg, { Line } from 'react-native-svg';
+import LinedPaper from '@/components/linedPaper/linedPaper';
 import { useStatesContext } from '@/context/StatesProvider';
 import { useThemeContext } from '@/context/ThemeProvider';
 
@@ -76,7 +76,6 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = () => {
   };
 
   const styles = createStyles(theme);
-  const stylesSvg = createStylesSvg();
 
   const handleFavoritePress = () => {
     handleChanges("isFavorite", data.isFavorite === 0 ? 1 : 0);
@@ -100,20 +99,7 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = () => {
         </View>
 
         <View style={styles.notebook}>
-          <View style={stylesSvg.background}>
-            {Array.from({ length: 20 }).map((_, i) => (
-              <Svg key={i} height="24" width="100%">
-                <Line
-                  x1="0"
-                  y1="19"
-                  x2="100%"
-                  y2="20"
-                  stroke="rgba(8, 8, 9, 0.1)"
-                  strokeWidth="1"
-                />
-              </Svg>
-            ))}
-          </View>
+          <LinedPaper backgroundColor={theme === "light" ? Colors.light.background2 : Colors.dark.ternary} />
 
           <TextInput
             style={styles.titleInput}
@@ -225,22 +211,5 @@ const createStyles = (theme: 'light' | 'dark') =>
     },
   });
 
-const createStylesSvg = () =>
-  StyleSheet.create({
-    container: {
-      backgroundColor: '#FFFDE7',
-      elevation: 5,
-      shadowColor: 'rgba(0, 0, 0, 0.5)',
-      shadowOffset: { width: 1, height: 1 },
-      shadowOpacity: 0.5,
-      shadowRadius: 2,
-    },
-    background: {
-      flex: 1,
-      position: 'absolute',
-      width: '100%',
-      height: '100%',
-    },
-  });
 
 export default EditNoteScreen;

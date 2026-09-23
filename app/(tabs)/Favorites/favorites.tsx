@@ -4,16 +4,18 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    ScrollView,
+    FlatList,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 
 import { Colors } from '@/constants/Colors';
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
 import { getFavoritesNotes, updateFavorite, getNotesByDate } from '@/db/noteDb';
-import Svg, { Line } from 'react-native-svg';
 import { Fontisto } from '@expo/vector-icons';
 import Loader from '@/components/loader/loader';
+import EmptyState from '@/components/emptyState/emptyState';
+import LinedPaper from '@/components/linedPaper/linedPaper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStatesContext } from '@/context/StatesProvider';
 import { useThemeContext } from '@/context/ThemeProvider';
 import { useGlobalContext } from '@/context/GlobalProvider';
@@ -21,7 +23,8 @@ import { useGlobalContext } from '@/context/GlobalProvider';
 const FavoritesTab = () => {
     const { loading, setLoading } = useStatesContext();
     const { theme } = useThemeContext();
-    const { day, dayNotes, setDayNotes } = useGlobalContext();
+    const { day, setDayNotes } = useGlobalContext();
+    const insets = useSafeAreaInsets();
 
     const [favoritesNotes, setFavoritesNotes] = useState<CreateNoteProps[]>([]);
 
@@ -64,39 +67,44 @@ const FavoritesTab = () => {
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: insets.top }]}>
                 <Text style={styles.headerText}>Favorites</Text>
             </View>
-            <ScrollView style={styles.scrollView}>
-                {!loading ? (
-                    favoritesNotes.map((note) => (
-                        <View key={note.id} style={styles.noteContainer}>
-                            <View style={stylesSvg.background}>
-                                {Array.from({ length: 20 }).map((_, i) => (
-                                    <Svg key={i} height="26" width="100%">
-                                        <Line
-                                            x1="0"
-                                            y1="19"
-                                            x2="100%"
-                                            y2="20"
-                                            stroke="rgba(8, 8, 9, 0.1)"
-                                            strokeWidth="1"
-                                        />
-                                    </Svg>
-                                ))}
-                            </View>
-                            <TouchableOpacity style={styles.favoriteButton} onPress={() => handleFavoriteToggle(note.id)}>
+            {loading ? (
+                <Loader />
+            ) : (
+                <FlatList
+                    data={favoritesNotes}
+                    keyExtractor={(item) => String(item.id)}
+                    style={styles.list}
+                    contentContainerStyle={styles.listContent}
+                    ListEmptyComponent={
+                        <EmptyState
+                            icon="heart-outline"
+                            title="No favourite notes yet"
+                            hint="Tap the heart on any note to keep it here."
+                        />
+                    }
+                    renderItem={({ item: note }) => (
+                        <View style={styles.noteContainer}>
+                            <LinedPaper
+                                backgroundColor={theme === "light" ? Colors.light.background2 : Colors.dark.primary}
+                                spacing={26}
+                            />
+                            <TouchableOpacity
+                                style={styles.favoriteButton}
+                                onPress={() => handleFavoriteToggle(note.id)}
+                                accessibilityLabel="Remove from favourites"
+                            >
                                 <Fontisto name="heart" size={24} color="red" />
                             </TouchableOpacity>
-                            {note.title && <Text style={styles.noteTitle}>{note.title}</Text>}
-                            {note.message && <Text style={styles.noteMessage}>{note.message}</Text>}
-                            {note.date && <Text style={styles.noteDate}>{note.date}</Text>}
+                            {note.title ? <Text style={styles.noteTitle} numberOfLines={2}>{note.title}</Text> : null}
+                            {note.message ? <Text style={styles.noteMessage}>{note.message}</Text> : null}
+                            {note.date ? <Text style={styles.noteDate}>{note.date}</Text> : null}
                         </View>
-                    ))
-                ) : (
-                    <Loader />
-                )}
-            </ScrollView>
+                    )}
+                />
+            )}
         </View>
     );
 };
@@ -109,10 +117,9 @@ const createStyles = (theme: 'light' | 'dark') =>
         },
         header: {
             backgroundColor: theme === "light" ? Colors.light.primary : Colors.dark.background2,
-            height: 105,
             width: "100%",
-            justifyContent: "center",
-            position: "absolute",
+            paddingBottom: 18,
+            justifyContent: "flex-end",
         },
         headerText: {
             fontFamily: "Pacifico",
@@ -120,9 +127,13 @@ const createStyles = (theme: 'light' | 'dark') =>
             textAlign: "center",
             color: theme === "light" ? Colors.text.textDark : Colors.text.textLight,
         },
-        scrollView: {
-            marginTop: 105,
+        list: {
+            flex: 1,
             backgroundColor: theme === "light" ? Colors.light.background : Colors.dark.background,
+        },
+        listContent: {
+            flexGrow: 1,
+            paddingBottom: 20,
         },
         noteContainer: {
             overflow: 'hidden',

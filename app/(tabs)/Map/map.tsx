@@ -17,6 +17,8 @@ import { useGlobalContext } from '@/context/GlobalProvider';
 import { Colors } from '@/constants/Colors';
 import { useStatesContext } from '@/context/StatesProvider';
 import { useThemeContext } from '@/context/ThemeProvider';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import EmptyState from '@/components/emptyState/emptyState';
 
 interface SortedDataProps {
     date: string;
@@ -33,6 +35,7 @@ const MapTab = () => {
     const { setDay } = useGlobalContext();
     const { setLoading } = useStatesContext();
     const navigation = useNavigation<BottomTabNavProps>();
+    const insets = useSafeAreaInsets();
 
     const [daysWithData, setDaysWithData] = useState<SortedDataProps[]>([]);
 
@@ -77,8 +80,15 @@ const MapTab = () => {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>MAP</Text>
-            <ScrollView style={styles.scrollView}>
+            <Text style={[styles.title, { paddingTop: insets.top + 10 }]}>MAP</Text>
+            <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+                {daysWithData.length === 0 && (
+                    <EmptyState
+                        icon="calendar-outline"
+                        title="Nothing recorded yet"
+                        hint="Days with tasks or notes will show up here."
+                    />
+                )}
                 {Object.entries(groupedByYearAndMonth).map(([year, months]) => (
                     <View key={year} style={styles.yearContainer}>
                         <Text style={styles.yearTitle}>{year}</Text>
@@ -114,29 +124,28 @@ const createStyles = (theme: 'light' | 'dark') =>
     StyleSheet.create({
         container: {
             flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
             backgroundColor: theme === "light" ? Colors.light.background2 : Colors.dark.primary2,
         },
         title: {
             color: theme === "light" ? Colors.text.textDark : Colors.text.textLight,
-            height: 105,
+            paddingBottom: 14,
             width: "100%",
             backgroundColor: theme === "light" ? Colors.light.primary : Colors.dark.background2,
-            position: "absolute",
             elevation: 5,
             textAlign: "center",
             textAlignVertical: "center",
             fontSize: 20,
             fontFamily: "Pacifico",
             padding: 10,
-            top: 0,
             zIndex: 1,
         },
         scrollView: {
             width: "100%",
-            height: "100%",
-            marginTop: 100,
+            flex: 1,
+        },
+        scrollContent: {
+            flexGrow: 1,
+            paddingBottom: 20,
         },
         yearContainer: {
             flexDirection: "column",

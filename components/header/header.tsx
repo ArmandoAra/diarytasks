@@ -12,6 +12,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from '@/interfaces/types';
 import DayChangerContainer from '@/containers/dayChanger/dayChangerContainer';
 import { useThemeContext } from '@/context/ThemeProvider';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface HeaderProps { } // Define las props si las hay
 
@@ -19,12 +20,13 @@ const Header: React.FC<HeaderProps> = () => {
     const { user } = useGlobalContext();
     const { theme } = useThemeContext();
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+    const insets = useSafeAreaInsets();
 
     const styles = createStyles(theme);
 
     return (
         <View style={styles.headerContainer}>
-            <View style={styles.headerContent}>
+            <View style={[styles.headerContent, { paddingTop: insets.top }]}>
                 <View style={styles.titleContainer}>
                     <Text style={styles.titleText}>Diary Tasks</Text>
                     <TouchableOpacity
@@ -43,10 +45,10 @@ const Header: React.FC<HeaderProps> = () => {
 
 const createStyles = (theme: 'light' | 'dark') => StyleSheet.create({
     headerContainer: {
-        height: 150,
+        // Height comes from the content plus the status-bar inset, so the
+        // title is never hidden behind a notch.
     },
     headerContent: {
-        height: '70%',
         paddingLeft: 30,
         backgroundColor: theme === 'light' ? Colors.light.primary : Colors.dark.background2,
         justifyContent: 'flex-end',

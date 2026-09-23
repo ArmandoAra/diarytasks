@@ -13,7 +13,7 @@ import { createNote, getNotesByDate } from '@/db/noteDb';
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
 import { AntDesign, Fontisto } from '@expo/vector-icons';
 import { Colors } from "@/constants/Colors";
-import Svg, { Line } from 'react-native-svg';
+import LinedPaper from '@/components/linedPaper/linedPaper';
 import { useStatesContext } from '@/context/StatesProvider';
 import { useThemeContext } from '@/context/ThemeProvider';
 
@@ -83,7 +83,6 @@ const CreateNote: React.FC<CreateNotePropsInterface> = () => {
     };
 
     const styles = createStyles(theme);
-    const stylesSvg = createStylesSvg(theme);
 
     return (
         <View style={styles.container}>
@@ -96,20 +95,7 @@ const CreateNote: React.FC<CreateNotePropsInterface> = () => {
                     </View>
 
 
-                    <View style={stylesSvg.background}>
-                        {Array.from({ length: 20 }).map((_, i) => (
-                            <Svg key={i} height="24" width="100%">
-                                <Line
-                                    x1="0"
-                                    y1="19"
-                                    x2="100%"
-                                    y2="20"
-                                    stroke="rgba(8, 8, 9, 0.1)"
-                                    strokeWidth="1"
-                                />
-                            </Svg>
-                        ))}
-                    </View>
+          <LinedPaper backgroundColor={theme === "light" ? Colors.light.background2 : Colors.dark.ternary} />
 
                     <TextInput
                         style={styles.titleInput}
@@ -220,14 +206,5 @@ const createStyles = (theme: 'light' | 'dark') =>
         },
     });
 
-const createStylesSvg = (theme: 'light' | 'dark') =>
-    StyleSheet.create({
-        background: {
-            position: 'absolute',
-            width: '100%',
-            height: '100%',
-            backgroundColor: theme === "light" ? Colors.light.background2 : Colors.dark.ternary,
-        },
-    });
 
 export default CreateNote;
