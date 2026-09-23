@@ -20,7 +20,7 @@ const Header: React.FC<HeaderProps> = () => {
     const { theme } = useThemeContext();
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
 
-    const styles = createStyles(theme as "light" | "dark");
+    const styles = createStyles(theme);
 
     return (
         <View style={styles.headerContainer}>

@@ -49,7 +49,7 @@ const DayChangerContainer: React.FC<DayChangerContainerProps> = () => {
         }
     };
 
-    const styles = createStyles(theme as "light" | "dark");
+    const styles = createStyles(theme);
 
     return (
         <View style={styles.container}>

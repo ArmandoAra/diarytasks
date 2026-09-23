@@ -28,43 +28,39 @@ const FavoritesTab = () => {
     useFocusEffect(
         useCallback(() => {
             const fetchFavorites = async () => {
+                setLoading(true);
                 try {
                     const favoriteNotes = await getFavoritesNotes();
-                    setFavoritesNotes(favoriteNotes.data as CreateNoteProps[]);
-                } catch (error) {
-                    console.error("Error fetching favorites:", error);
+                    setFavoritesNotes(favoriteNotes.data ?? []);
+                } finally {
+                    setLoading(false);
                 }
             };
             fetchFavorites();
-            setLoading(false);
-        }, [favoritesNotes.length])
+        }, [setLoading])
     );
 
     const handleFavoriteToggle = async (id: string) => {
+        const removed = favoritesNotes.find(note => note.id === id);
 
-        try {
-            await updateFavorite(id, 0);
-            setFavoritesNotes(favoritesNotes.filter(note => note.id !== id));
-
-            let variab = favoritesNotes.map(note => {
-                if (note.id === id) {
-                    return note.date;
-                }
-            })
-
-            if (variab.includes(day)) {
-                let result = await getNotesByDate(day);
-                if (result) setDayNotes(result.data as CreateNoteProps[])
-            }
-        } catch (error) {
-            console.error("Error toggling favorite:", error);
+        const result = await updateFavorite(id, 0);
+        if (!result.success) {
+            console.warn('Error toggling favorite');
+            return;
         }
-        setLoading(false);
 
+        setFavoritesNotes(notes => notes.filter(note => note.id !== id));
+
+        // The note may also be on screen in the Notes tab for the selected day;
+        // refresh that list so both views agree.
+        if (removed?.date === day) {
+            const notes = await getNotesByDate(day);
+            setDayNotes(notes.data ?? []);
+        }
     };
 
-    const styles = createStyles(theme as "light" | "dark");
-    const stylesSvg = createStylesSvg(theme as "light" | "dark");
+    const styles = createStyles(theme);
+    const stylesSvg = createStylesSvg();
 
     return (
         <View style={styles.container}>
@@ -165,7 +161,7 @@ const createStyles = (theme: 'light' | 'dark') =>
         },
     });
 
-const createStylesSvg = (theme: 'light' | 'dark') =>
+const createStylesSvg = () =>
     StyleSheet.create({
         background: {
             position: 'absolute',

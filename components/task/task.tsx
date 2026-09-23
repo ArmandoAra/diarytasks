@@ -4,6 +4,7 @@ import {
     Text,
     TouchableOpacity,
     StyleSheet,
+    Alert,
 } from 'react-native';
 
 // Interfaces
@@ -48,22 +49,21 @@ const Task = ({
                 task.id === id ? { ...task, status: newStatus } : task
             );
 
+            // Optimistic update, rolled back below if the write fails.
             setTasks(tasksWithStatusChange);
 
-            try {
-                const response = await updateTaskStatus(id, newStatus);
-                if (!response.success) {
-                    alert('Something went wrong updating the task status');
-                }
-            } catch (error) {
-                console.error("Error updating task status:", error);
-                alert('Something went wrong updating the task status');
+            const response = await updateTaskStatus(id, newStatus);
+            if (!response.success) {
+                setTasks(prevTasks =>
+                    prevTasks.map(task => (task.id === id ? { ...task, status } : task))
+                );
+                Alert.alert('Could not save', 'Something went wrong updating the task status.');
             }
         }
         setLastTap(now);
     };
 
-    const styles = createStyles(theme as "light" || "Dark");
+    const styles = createStyles(theme);
 
     return (
         <TouchableOpacity
@@ -73,7 +73,7 @@ const Task = ({
             {/* First Line */}
             <View style={styles.firstLine}>
                 <View style={styles.firstLineStart}>
-                    <Text>{StatusIcon(status)}</Text>
+                    <StatusIcon status={status} />
                     <Text style={styles.titleText}>
                         {title.toLocaleUpperCase()}
                     </Text>

@@ -73,7 +73,7 @@ const MapTab = () => {
         return acc;
     }, {} as Record<string, Record<string, SortedDataProps[]>>);
 
-    const styles = createStyles(theme as "light" | "dark");
+    const styles = createStyles(theme);
 
     return (
         <View style={styles.container}>
@@ -86,7 +86,7 @@ const MapTab = () => {
                             <View key={month} style={styles.monthContainer}>
                                 <Text style={styles.monthTitle}>{month}</Text>
                                 <View style={styles.daysContainer}>
-                                    {days
+                                    {[...days]
                                         .sort((a, b) => Number(a.day) - Number(b.day))
                                         .map(({ day, haveNote, allTasksCompleted, haveTask }) => (
                                             <TouchableOpacity

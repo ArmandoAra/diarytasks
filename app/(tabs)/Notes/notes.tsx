@@ -26,20 +26,21 @@ const NotesTab: React.FC<NotesTabProps> = () => {
   const { theme } = useThemeContext();
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchNotes = async () => {
+      setLoading(true);
       try {
         const notes = await getNotesByDate(day);
-        setDayNotes(Array.isArray(notes.data) ? notes.data : []);
-      } catch (error) {
-        console.error("Error retrieving Notes:", error);
-        setDayNotes([]);
+        if (!cancelled) setDayNotes(notes.data ?? []);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchNotes();
-  }, [day]); // Add setDayNotes to dependency array
+    return () => { cancelled = true; };
+  }, [day, setDayNotes, setLoading]);
 
   //Close the edit and Create note when leave the notes.
   useFocusEffect(
@@ -50,7 +51,7 @@ const NotesTab: React.FC<NotesTabProps> = () => {
   );
 
 
-  const styles = createStyles(theme as "light" | "dark");
+  const styles = createStyles(theme);
 
   return (
     <View style={styles.container}>

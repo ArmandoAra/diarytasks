@@ -8,7 +8,7 @@ import {
   Alert,
 } from 'react-native';
 
-import { searchNoteById } from '@/Utils/helpFunctions';
+import { findNoteById } from '@/Utils/helpFunctions';
 import { en, registerTranslation } from 'react-native-paper-dates';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { getNotesByDate, updateNoteById } from '@/db/noteDb';
@@ -39,21 +39,22 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = () => {
   const [data, setData] = useState<CreateNoteProps>(initialData);
 
   useEffect(() => {
-    const selectedNote = searchNoteById(editNoteOpen.id, dayNotes);
-    if (selectedNote && selectedNote.length > 0) {
-      setData((prevData) => ({
-        ...prevData,
-        title: selectedNote[0].title,
-        message: selectedNote[0].message,
-        isFavorite: selectedNote[0].isFavorite,
-        date: selectedNote[0].date,
-        id: selectedNote[0].id, // Include the ID
-      }));
-    } else {
-      console.warn("Note not found!");
-      setData(initialData);
+    const selectedNote = findNoteById(editNoteOpen.id, dayNotes);
+
+    if (!selectedNote) {
+      console.warn('Note not found:', editNoteOpen.id);
+      setEditNoteOpen({ isOpen: false, id: "" });
+      return;
     }
-  }, [editNoteOpen.id, dayNotes]);
+
+    setData({
+      id: selectedNote.id,
+      title: selectedNote.title,
+      message: selectedNote.message,
+      isFavorite: selectedNote.isFavorite,
+      date: selectedNote.date,
+    });
+  }, [editNoteOpen.id, dayNotes, setEditNoteOpen]);
 
   const handleChanges = (key: keyof CreateNoteProps, value: string | number) => {
     setData(prevData => ({ ...prevData, [key]: value }));
@@ -64,17 +65,17 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = () => {
       return Alert.alert("Message is required", "Please enter a message for the note.");
     }
 
-    try {
-      await updateNoteById(data.id.toString(), data); // Use data.id
-      const notes = await getNotesByDate(data.date);
-      setDayNotes(notes.data as CreateNoteProps[]);
-      setEditNoteOpen({ isOpen: false, id: "" });
-    } catch (error) {
-      console.error("Error updating note:", error);
+    const updated = await updateNoteById(data.id.toString(), data);
+    if (!updated.success) {
+      return Alert.alert("Could not save", "Something went wrong updating the note.");
     }
+
+    const notes = await getNotesByDate(data.date);
+    setDayNotes(notes.data ?? []);
+    setEditNoteOpen({ isOpen: false, id: "" });
   };
 
-  const styles = createStyles(theme as "light" | "dark");
+  const styles = createStyles(theme);
   const stylesSvg = createStylesSvg();
 
   const handleFavoritePress = () => {

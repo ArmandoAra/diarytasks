@@ -1,66 +1,78 @@
-import * as SQLite from 'expo-sqlite';
+import { DbResult, runQuery } from './client';
 
-export async function createUser(
-    name: string,
-) {
-    const db = await SQLite.openDatabaseAsync('diaryTasks.db');
-
-    try {
-        const result = await db.getAllAsync<{ name: string }>(`SELECT name FROM User WHERE name = ?`, [name])
-        if (result.length === 0) {
-            // Si no existe el usuario, entonces lo inserta
-            await db.runAsync('INSERT INTO User (name) VALUES (?)', [name]);
-        }
-    }
-    catch (error) {
-        console.log('Error CreatingUser', error)
-    }
-    db.closeAsync()
-};
-
-export async function updateUser(
-    id: string,
-    name: string,) {
-    const db = await SQLite.openDatabaseAsync('diaryTasks.db');
-
-    try {
-        const result = await db.runAsync(
-            `UPDATE User SET
-                 name = ? 
-             WHERE id = ?`,
-            [
-                name,
-                id
-            ]
-        );
-
-        // Verificar si la tarea fue actualizada
-        if (result.changes > 0) {
-            console.log('User updated successfully');
-
-            return { success: true, message: 'User updated successfully' };
-        } else {
-            createUser(name)
-            return { success: false, message: 'No User found with the specified ID, New user created  ' };
-        }
-    } catch (error) {
-        console.log('Error updating User:', error);
-        return { success: false, message: 'Error updating User', error };
-    }
+export interface User {
+    id: string;
+    name: string;
 }
 
-export async function getUser(): Promise<string> {
-    const db = await SQLite.openDatabaseAsync('diaryTasks.db');
-    try {
-        const result = await db.getAllAsync<{ name: string, id: number }>('SELECT name,id FROM User')
-        if (result.length == 0) {
-            createUser("Unknow")
-            return JSON.stringify({ name: "Unknow", id: "1" })
-        } else {
-            return JSON.stringify({ name: result[0].name, id: result[0].id.toString() })
+export const DEFAULT_USER_NAME = 'Unknown';
+
+export async function createUser(name: string): Promise<DbResult<User>> {
+    const result = await runQuery('create user', async (db) => {
+        const existing = await db.getFirstAsync<{ id: number; name: string }>(
+            'SELECT id, name FROM User WHERE name = ?',
+            [name],
+        );
+
+        if (existing) {
+            return { id: String(existing.id), name: existing.name };
         }
-    } catch (error) {
-        console.log('Error getting user on GetUser')
-        return "Error getting user"
+
+        const inserted = await db.runAsync('INSERT INTO User (name) VALUES (?)', [name]);
+        return { id: String(inserted.lastInsertRowId), name };
+    });
+
+    return result;
+}
+
+export async function updateUser(id: string, name: string): Promise<DbResult<User>> {
+    const result = await runQuery('update user', (db) =>
+        db.runAsync(
+            'UPDATE User SET name = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
+            [name, id],
+        ),
+    );
+
+    if (!result.success) {
+        return { success: false, message: result.message, error: result.error };
     }
+
+    if (!result.data?.changes) {
+        // No row with that id - fall back to creating the user.
+        const created = await createUser(name);
+        return {
+            success: created.success,
+            data: created.data,
+            message: 'No user found with the specified ID, new user created',
+        };
+    }
+
+    return { success: true, data: { id, name }, message: 'User updated successfully' };
+}
+
+/**
+ * Returns the single local user, creating a default one when the table is
+ * empty.
+ *
+ * Previously this returned a JSON *string* that callers had to `JSON.parse`,
+ * and its error branch returned the plain text "Error getting user" - which
+ * threw inside the caller's parse and left the app stuck on the loader. It now
+ * returns a typed object and never throws.
+ */
+export async function getUser(): Promise<User> {
+    const result = await runQuery('get user', (db) =>
+        db.getFirstAsync<{ id: number; name: string }>('SELECT id, name FROM User ORDER BY id LIMIT 1'),
+    );
+
+    if (result.success && result.data) {
+        return { id: String(result.data.id), name: result.data.name };
+    }
+
+    if (result.success) {
+        // Table is empty: seed a default user so the greeting has something.
+        const created = await createUser(DEFAULT_USER_NAME);
+        return created.data ?? { id: '', name: DEFAULT_USER_NAME };
+    }
+
+    return { id: '', name: DEFAULT_USER_NAME };
 }

@@ -1,4 +1,4 @@
-import { View, BackHandler, Alert, StatusBar, SafeAreaView } from 'react-native';
+import { View, BackHandler, Alert, StatusBar } from 'react-native';
 import { useEffect, useState } from 'react';
 
 
@@ -43,9 +43,8 @@ const Home = () => {
                     throw new Error("Failed to load database"); // Handle DB error
                 }
 
-                const userResult = await getUser();
-                const userData = JSON.parse(userResult);
-                setUser({ name: userData.name, id: userData.id });
+                const userData = await getUser();
+                setUser(userData);
                 setDbLoaded(true);
             } catch (error) {
                 console.error("Error loading app data:", error);
@@ -58,29 +57,30 @@ const Home = () => {
     }, []);
 
     useEffect(() => {
+        if (!dbLoaded) return;
+
+        let cancelled = false;
+
         const fetchData = async () => {
-            setLoading(true); // Start loading before fetching
+            setLoading(true);
             try {
-                const tasks = await getTasksByDate(day);
-                setTasks(Array.isArray(tasks.data) ? tasks.data : []);
+                // Both reads are independent, so run them together.
+                const [tasks, notes] = await Promise.all([
+                    getTasksByDate(day),
+                    getNotesByDate(day),
+                ]);
 
-                const notes = await getNotesByDate(day); // Fetch notes as well
-                setDayNotes(Array.isArray(notes.data) ? notes.data : []);
-
-            } catch (error) {
-                console.error("Error retrieving data:", error);
-                setTasks([]);
-                setDayNotes([]);
+                if (cancelled) return;
+                setTasks(tasks.data ?? []);
+                setDayNotes(notes.data ?? []);
             } finally {
-                setLoading(false); // Stop loading after fetching
+                if (!cancelled) setLoading(false);
             }
         };
 
-        if (dbLoaded) { // Only fetch data if the database is loaded
-            fetchData();
-        }
-
-    }, [day, dbLoaded]);
+        fetchData();
+        return () => { cancelled = true; };
+    }, [day, dbLoaded, setTasks, setDayNotes, setLoading]);
 
     useEffect(() => {
         const backAction = () => {

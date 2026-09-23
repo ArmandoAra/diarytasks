@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
+import { View, TouchableOpacity, Text, StyleSheet, Alert } from 'react-native';
 import { Colors } from "@/constants/Colors";
 
 import { useStatesContext } from '@/context/StatesProvider';
@@ -17,28 +17,33 @@ export const DeletingPopUp: React.FC<DeletingPopUpProps> = () => {
     const { deletingOpen, setDeletingOpen } = useStatesContext();
 
     const handleDeleteById = async (id: string) => {
-        try {
-            switch (deletingOpen.type) {
-                case "Task":
-                    await deleteTaskById(id);
-                    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id)); //remove task from tasks state array
-                    break;
-                case "Note":
-                    await deleteNoteById(id);
-                    setDayNotes((prevDayNotes) => prevDayNotes.filter((note) => note.id !== id)); //remove note from dayNotes state array
-                    break;
-                default:
-                    break;
+        switch (deletingOpen.type) {
+            case "Task": {
+                const result = await deleteTaskById(id);
+                if (result.success) {
+                    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
+                } else {
+                    Alert.alert("Could not delete", "Something went wrong deleting the task.");
+                }
+                break;
             }
-        } catch (error) {
-            console.error(`Error deleting ${deletingOpen.type}:`, error); // More specific error message
-            // Consider showing an error message to the user
+            case "Note": {
+                const result = await deleteNoteById(id);
+                if (result.success) {
+                    setDayNotes((prevNotes) => prevNotes.filter((note) => note.id !== id));
+                } else {
+                    Alert.alert("Could not delete", "Something went wrong deleting the note.");
+                }
+                break;
+            }
+            default:
+                break;
         }
-        setDeletingOpen({ isOpen: false, id: "", type: null });
 
+        setDeletingOpen({ isOpen: false, id: "", type: null });
     };
 
-    const styles = createStyles(theme as "light" | "dark");
+    const styles = createStyles(theme);
 
     return (
         <View style={styles.container}>

@@ -17,16 +17,20 @@ const Favorite = ({ id, isFavorite }: IFavToggleProps) => {
     const { setDayNotes, dayNotes } = useGlobalContext();
 
     const handleFavoriteToggle = async (fav: number) => {
-        const dayNotesWidthFavoriteChanged = dayNotes.map(note =>
-            note.id === id ? { ...note, isFavorite: (note.isFavorite == 0) ? 1 : 0 } : note
+        // Optimistic update so the heart reacts instantly.
+        setDayNotes(notes =>
+            notes.map(note => (note.id === id ? { ...note, isFavorite: fav } : note))
         );
-        setDayNotes(dayNotesWidthFavoriteChanged)
+
         const result = await updateFavorite(id, fav);
 
-        if (!result) {
-            console.log("Something went wrong updating favorite note")
+        if (!result.success) {
+            console.warn('Something went wrong updating favorite note');
+            // Put the previous value back so the UI matches the database.
+            setDayNotes(notes =>
+                notes.map(note => (note.id === id ? { ...note, isFavorite } : note))
+            );
         }
-
     };
 
     return (

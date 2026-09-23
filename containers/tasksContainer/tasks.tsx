@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import Task from '../../components/task/task';
 
@@ -10,7 +10,6 @@ import Entypo from '@expo/vector-icons/Entypo';
 import { useThemeContext } from '@/context/ThemeProvider';
 import { CreateNewTask } from '../createTask/createTask';
 import { useStatesContext } from '@/context/StatesProvider';
-import Loader from '@/components/loader/loader';
 import { useFocusEffect } from 'expo-router';
 
 interface TasksContainerProps { } // Define props if needed
@@ -21,7 +20,7 @@ const TasksContainer: React.FC<TasksContainerProps> = () => {
     const { theme } = useThemeContext();
     const { setEditTaskOpen, setCreateTaskOpen } = useStatesContext();
 
-    const styles = createStyles(theme as "light" | "dark");
+    const styles = createStyles(theme);
 
     const filteredTasks = useMemo(() => {
         if (sortOption === 'All') return tasks;
@@ -45,19 +44,19 @@ const TasksContainer: React.FC<TasksContainerProps> = () => {
                     label="All Tasks"
                     selected={sortOption === "All"}
                     onPress={() => setSortOption("All")}
-                    theme={theme as "light" | "dark"}
+                    theme={theme}
                 />
                 <FilterButton
                     label="Completed"
                     selected={sortOption === "Completed"}
                     onPress={() => setSortOption("Completed")}
-                    theme={theme as "light" | "dark"}
+                    theme={theme}
                 />
                 <FilterButton
                     label="To Do"
                     selected={sortOption === "ToDo"}
                     onPress={() => setSortOption("ToDo")}
-                    theme={theme as "light" | "dark"}
+                    theme={theme}
                 />
             </View>
             <ScrollView style={styles.scrollView}>

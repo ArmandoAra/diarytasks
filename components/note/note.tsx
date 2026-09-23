@@ -13,7 +13,7 @@ const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite }: NoteProps
     const { setEditNoteOpen, setDeletingOpen } = useStatesContext();
     const { theme } = useThemeContext();
 
-    const styles = createStyles(theme as "light" | "dark"); // Pass theme to createStyles
+    const styles = createStyles(theme);
 
 
     return (

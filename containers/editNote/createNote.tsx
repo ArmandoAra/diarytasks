@@ -49,17 +49,15 @@ const CreateNote: React.FC<CreateNotePropsInterface> = () => {
         if (!note.message) {
             return Alert.alert("Message is required", "Please enter a message for the note.");
         }
-        try {
-            const result = await createNote(note);
-            if (result) {
-                getNotesByDate(day).then((notes) => setDayNotes(notes.data as CreateNoteProps[]));
-                setNote(initialData)
-            }
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setCreateNoteOpen(false);
+        const created = await createNote(note);
+        if (!created.success) {
+            return Alert.alert("Could not save", "Something went wrong creating the note.");
         }
+
+        const notes = await getNotesByDate(day);
+        setDayNotes(notes.data ?? []);
+        setNote(initialData);
+        setCreateNoteOpen(false);
     };
 
     const handleCreateNotePress = () => {
@@ -84,8 +82,8 @@ const CreateNote: React.FC<CreateNotePropsInterface> = () => {
         }
     };
 
-    const styles = createStyles(theme as "light" | "dark");
-    const stylesSvg = createStylesSvg(theme as "light" | "dark");
+    const styles = createStyles(theme);
+    const stylesSvg = createStylesSvg(theme);
 
     return (
         <View style={styles.container}>

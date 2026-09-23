@@ -2,12 +2,11 @@ import { Colors } from "@/constants/Colors";
 import { useGlobalContext } from "@/context/GlobalProvider";
 import { Ionicons } from "@expo/vector-icons";
 import { TouchableOpacity, View, Text, TextInput, StyleSheet } from "react-native";
-import { createUser, updateUser } from "@/db/userDb";
+import { updateUser } from "@/db/userDb";
 import { useState, useCallback } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { BottomTabNavProps } from "@/interfaces/types";
 import { useThemeContext } from "@/context/ThemeProvider";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 const SettingsScreen = () => {
@@ -22,30 +21,23 @@ const SettingsScreen = () => {
         setNewUser(value);
     }, []);
 
-    const changeTheme = async (newTheme: string) => {
-        try {
-            await AsyncStorage.setItem("theme", newTheme);
-            setTheme(newTheme);
-        } catch (error) {
-            console.error("Error saving theme:", error);
-        }
-    };
-
     const onSave = useCallback(async () => {
-        if (user.name !== newUser) {
+        const name = newUser.trim();
+
+        if (name && name !== user.name) {
+            setLoading(true);
             try {
-                setLoading(true);
-                await updateUser(user.id, newUser);
-                setUser({ name: newUser, id: user.id });
-            } catch (error) {
-                console.error("Error updating user:", error);
-                await createUser(newUser);
+                // updateUser already falls back to creating the row when the id
+                // does not exist, so there is no second write here.
+                const result = await updateUser(user.id, name);
+                setUser(result.data ?? { name, id: user.id });
             } finally {
                 setLoading(false);
             }
         }
+
         navigation.navigate("Home");
-    }, [newUser, user, setUser]);
+    }, [newUser, user, setUser, navigation]);
 
     return (
         <View style={[styles.container, { backgroundColor: theme === "light" ? Colors.light.background : Colors.dark.background }]}>
@@ -72,10 +64,10 @@ const SettingsScreen = () => {
                     <Text style={styles.saveText}>{loading ? "Saving..." : "Save"}</Text>
                 </TouchableOpacity>
                 <View style={styles.themeContainer}>
-                    <TouchableOpacity onPress={() => changeTheme("light")} style={styles.themeButton}>
+                    <TouchableOpacity onPress={() => setTheme('light')} style={styles.themeButton}>
                         <Ionicons name="sunny" size={24} color={theme === "light" ? Colors.text.textDark : Colors.text.textLight} />
                     </TouchableOpacity>
-                    <TouchableOpacity onPress={() => changeTheme("dark")} style={styles.themeButton}>
+                    <TouchableOpacity onPress={() => setTheme('dark')} style={styles.themeButton}>
                         <Ionicons name="moon" size={24} color={theme === "light" ? Colors.text.textDark : Colors.text.textLight} />
                     </TouchableOpacity>
                 </View>

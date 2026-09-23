@@ -1,13 +1,9 @@
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
 import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 import { formatDate } from '@/Utils/helpFunctions';
+import type { User } from '@/db/userDb';
 import React, { createContext, useContext, useState, ReactNode, FC } from 'react';
 
-
-interface User {
-    id: string;
-    name: string;
-}
 
 interface GlobalContextProps {
     user: User;
