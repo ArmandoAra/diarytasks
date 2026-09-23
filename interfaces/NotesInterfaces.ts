@@ -1,3 +1,4 @@
+import type { NoteMedia } from '@/db/mediaDb';
 
 export interface CreateNoteProps {
     id: string;
@@ -12,4 +13,6 @@ export interface NoteProps {
     title: string;
     message: string;
     isFavorite: number;
+    /** Attachments, loaded separately from the note row. */
+    media?: NoteMedia[];
 }

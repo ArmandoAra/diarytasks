@@ -7,6 +7,7 @@ import { useThemeContext } from '@/context/ThemeProvider';
 
 import { deleteTaskById } from '@/db/taskDb';
 import { deleteNoteById } from '@/db/noteDb';
+import { deleteMediaForNote } from '@/db/mediaDb';
 import { useGlobalContext } from '@/context/GlobalProvider';
 
 interface DeletingPopUpProps { } // Define props if needed
@@ -28,6 +29,9 @@ export const DeletingPopUp: React.FC<DeletingPopUpProps> = () => {
                 break;
             }
             case "Note": {
+                // Files first: ON DELETE CASCADE drops the NoteMedia rows but
+                // leaves the files on disk, which is how storage quietly grows.
+                await deleteMediaForNote(id);
                 const result = await deleteNoteById(id);
                 if (result.success) {
                     setDayNotes((prevNotes) => prevNotes.filter((note) => note.id !== id));

@@ -6,15 +6,27 @@ const NOTE_COLUMNS = 'id, title, message, isFavorite, date';
 
 const NOT_FOUND = 'No note found with the specified ID';
 
-export async function createNote(note: CreateNoteProps): Promise<DbResult> {
-    return runWrite(
-        'create note',
-        (db) => db.runAsync(
+export async function createNote(note: CreateNoteProps): Promise<DbResult<string>> {
+    const result = await runQuery('create note', (db) =>
+        db.runAsync(
             'INSERT INTO Note (title, message, isFavorite, date) VALUES (?, ?, ?, ?)',
             [note.title, note.message, note.isFavorite, note.date],
         ),
-        { success: 'Note created successfully', notFound: 'Error inserting note' },
     );
+
+    if (!result.success) {
+        return { success: false, message: result.message, error: result.error };
+    }
+
+    if (!result.data?.changes) {
+        return { success: false, message: 'Error inserting note' };
+    }
+
+    return {
+        success: true,
+        data: String(result.data.lastInsertRowId),
+        message: 'Note created successfully',
+    };
 }
 
 export async function updateNoteById(id: string, data: CreateNoteProps): Promise<DbResult> {

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, FlatList, StyleSheet } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 
@@ -9,6 +9,7 @@ import { DeletingPopUp } from '@/components/delete/deletingPopUp';
 import DayChangerContainer from '@/containers/dayChanger/dayChangerContainer';
 
 import { getNotesByDate } from '@/db/noteDb';
+import { getMediaForNotes, NoteMedia } from '@/db/mediaDb';
 
 import { useThemeContext } from '@/context/ThemeProvider';
 import { useGlobalContext } from '@/context/GlobalProvider';
@@ -24,6 +25,7 @@ interface NotesTabProps { } // Define props if needed
 
 const NotesTab: React.FC<NotesTabProps> = () => {
   const { day, dayNotes, setDayNotes } = useGlobalContext();
+  const [mediaByNote, setMediaByNote] = useState<Record<string, NoteMedia[]>>({});
   const { loading, setLoading, editNoteOpen, deletingOpen, setEditNoteOpen, setCreateNoteOpen } = useStatesContext();
   const { theme } = useThemeContext();
   const insets = useSafeAreaInsets();
@@ -35,7 +37,12 @@ const NotesTab: React.FC<NotesTabProps> = () => {
       setLoading(true);
       try {
         const notes = await getNotesByDate(day);
-        if (!cancelled) setDayNotes(notes.data ?? []);
+        if (cancelled) return;
+        setDayNotes(notes.data ?? []);
+
+        const ids = (notes.data ?? []).map((note) => String(note.id));
+        const media = await getMediaForNotes(ids);
+        if (!cancelled) setMediaByNote(media.data ?? {});
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -75,6 +82,7 @@ const NotesTab: React.FC<NotesTabProps> = () => {
               title={item.title}
               message={item.message}
               isFavorite={item.isFavorite}
+              media={mediaByNote[String(item.id)]}
             />
           )}
           numColumns={2}

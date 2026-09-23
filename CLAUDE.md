@@ -74,6 +74,7 @@ Siempre pasa por `db/*`, que devuelve un `DbResult` y **nunca lanza excepciones*
 | `noteDb.ts` | CRUD de notas + `updateFavorite`, `getFavoritesNotes`. |
 | `userDb.ts` | Usuario local único. `getUser()` devuelve `{id, name}` tipado. |
 | `mapDb.ts` | Agrega tareas y notas por día para la pestaña Map (`getSortedDaysWithNotesAndTasks`). |
+| `mediaDb.ts` | Adjuntos de notas: `getMediaForNote(s)`, `addMedia`, `deleteMedia`, `deleteMediaForNote`. |
 
 ### `context/` — estado global
 
@@ -108,6 +109,8 @@ Siempre pasa por `db/*`, que devuelve un `DbResult` y **nunca lanza excepciones*
 
 - `Utils/helpFunctions.ts` — **toda la lógica de fechas** + `processTasks`, `getUniqueDates`, `priorityColorHandler`. Cubierto por tests.
 - `Utils/renderIcons.tsx` — `<StatusIcon status={...} />`.
+- `Utils/mediaStorage.ts` — **archivos en disco**: `persistMedia`, `toAbsoluteUri`, `deleteMediaFile`.
+- `Utils/mediaImport.ts` — cámara/galería → adjunto guardado (`pickMedia`), miniaturas.
 - `interfaces/` — `TasksInterfaces.ts`, `NotesInterfaces.ts`, `types.ts` (tipos de navegación).
 - `constants/Colors.ts` — paleta `text` / `light` / `dark`. **Única fuente de color.**
 
@@ -119,6 +122,8 @@ Siempre pasa por `db/*`, que devuelve un `DbResult` y **nunca lanza excepciones*
 User (id, name, createdAt, updatedAt)
 Task (id, userId→User, title, description, status, priority, date, createdAt, updatedAt)
 Note (id, userId→User, title, message, isFavorite, date, createdAt, updatedAt)
+NoteMedia (id, noteId→Note ON DELETE CASCADE, kind, path, thumbPath,
+           width, height, durationMs, orderIndex, createdAt)
 TaskTemplate (id, userId→User, title, description, ...)   -- sin usar todavía
 ```
 
@@ -159,6 +164,17 @@ TaskTemplate (id, userId→User, title, description, ...)   -- sin usar todavía
 6. `useFocusEffect` cierra los modales al cambiar de pestaña; no dependas de que sigan abiertos.
 7. **Las cabeceras usan `useSafeAreaInsets()`**, no alturas fijas. Si pones un
    `height` fijo en una cabecera, vuelves a meter el título bajo el notch.
+8. **Medios — las tres reglas que no puedes saltarte:**
+   - La URI del picker apunta a **caché** y el sistema la purga. Copia siempre
+     con `persistMedia()` antes de guardar nada en la BD.
+   - En `NoteMedia.path` se guarda la ruta **relativa** a `documentDirectory`.
+     Nunca una URI absoluta: en iOS el contenedor cambia de UUID al actualizar
+     la app. Resuelve al pintar con `toAbsoluteUri()`.
+   - `ON DELETE CASCADE` borra **filas, no archivos**. Llama a
+     `deleteMediaForNote()` *antes* de borrar la nota, o los ficheros se quedan
+     ocupando espacio para siempre.
+9. Las tarjetas y el calendario pintan **`thumbPath`**, nunca `path`: decodificar
+   el original en una miniatura agota la memoria.
 
 ---
 

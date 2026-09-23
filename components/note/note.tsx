@@ -5,11 +5,13 @@ import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { NoteProps } from '@/interfaces/NotesInterfaces';
 import Favorite from '../favoriteToggle/favToggle';
 import LinedPaper from '../linedPaper/linedPaper';
+import MediaPreview from '../media/mediaPreview';
+import { NoteMedia } from '@/db/mediaDb';
 import { Colors } from '@/constants/Colors';
 import { useStatesContext } from '@/context/StatesProvider';
 import { useThemeContext } from '@/context/ThemeProvider';
 
-const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite }: NoteProps) => {
+const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite, media = [] }: NoteProps) => {
     const { setEditNoteOpen, setDeletingOpen } = useStatesContext();
     const { theme } = useThemeContext();
 
@@ -24,6 +26,7 @@ const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite }: NoteProps
                 />
 
                 <View style={styles.content}>
+                    <MediaPreview media={media} />
                     <Text style={styles.title} numberOfLines={2}>{title}</Text>
                     <Text style={styles.message} numberOfLines={5}>{message}</Text>
                 </View>

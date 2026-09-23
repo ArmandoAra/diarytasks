@@ -36,7 +36,39 @@ const toIsoDates: Migration = {
     },
 };
 
-const MIGRATIONS: Migration[] = [toIsoDates];
+/**
+ * Attachments for notes.
+ *
+ * `path` and `thumbPath` are relative to `FileSystem.documentDirectory` - see
+ * `Utils/mediaStorage.ts` for why absolute URIs are not stored.
+ *
+ * ON DELETE CASCADE only removes the rows; the files are deleted explicitly by
+ * `deleteMediaForNote`, since SQLite cannot touch the filesystem.
+ */
+const noteMedia: Migration = {
+    name: 'add NoteMedia table',
+    up: async (db) => {
+        await db.execAsync(`
+            CREATE TABLE IF NOT EXISTS NoteMedia (
+                id          INTEGER PRIMARY KEY AUTOINCREMENT,
+                noteId      INTEGER NOT NULL,
+                kind        TEXT NOT NULL CHECK (kind IN ('image', 'video')),
+                path        TEXT NOT NULL,
+                thumbPath   TEXT,
+                width       INTEGER,
+                height      INTEGER,
+                durationMs  INTEGER,
+                orderIndex  INTEGER NOT NULL DEFAULT 0,
+                createdAt   DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (noteId) REFERENCES Note(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_media_note ON NoteMedia(noteId, orderIndex);
+        `);
+    },
+};
+
+const MIGRATIONS: Migration[] = [toIsoDates, noteMedia];
 
 /**
  * Applies every migration the database has not seen yet.

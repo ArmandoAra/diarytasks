@@ -12,6 +12,9 @@ import { findNoteById } from '@/Utils/helpFunctions';
 import { en, registerTranslation } from 'react-native-paper-dates';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { getNotesByDate, updateNoteById } from '@/db/noteDb';
+import { addMedia, deleteMedia, getMediaForNote } from '@/db/mediaDb';
+import MediaStrip, { DraftMedia } from '@/components/media/mediaStrip';
+import { deleteMediaFile } from '@/Utils/mediaStorage';
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
 import { AntDesign, FontAwesome, Fontisto } from '@expo/vector-icons';
 import { Colors } from "@/constants/Colors";
@@ -37,6 +40,7 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = () => {
   };
 
   const [data, setData] = useState<CreateNoteProps>(initialData);
+  const [media, setMedia] = useState<DraftMedia[]>([]);
 
   useEffect(() => {
     const selectedNote = findNoteById(editNoteOpen.id, dayNotes);
@@ -56,18 +60,34 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = () => {
     });
   }, [editNoteOpen.id, dayNotes, setEditNoteOpen]);
 
+  useEffect(() => {
+    if (!data.id) return;
+    let cancelled = false;
+
+    getMediaForNote(String(data.id)).then((result) => {
+      if (!cancelled) setMedia(result.data ?? []);
+    });
+
+    return () => { cancelled = true; };
+  }, [data.id]);
+
   const handleChanges = (key: keyof CreateNoteProps, value: string | number) => {
     setData(prevData => ({ ...prevData, [key]: value }));
   };
 
   const handleSubmit = async () => {
-    if (!data.message) {
-      return Alert.alert("Message is required", "Please enter a message for the note.");
+    if (!data.message && media.length === 0) {
+      return Alert.alert("Nothing to save", "Write something or attach a photo.");
     }
 
     const updated = await updateNoteById(data.id.toString(), data);
     if (!updated.success) {
       return Alert.alert("Could not save", "Something went wrong updating the note.");
+    }
+
+    // Attachments added during this edit have no row yet; existing ones do.
+    for (const item of media) {
+      if (!item.id) await addMedia({ ...item, noteId: String(data.id) });
     }
 
     const notes = await getNotesByDate(data.date);
@@ -76,6 +96,20 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = () => {
   };
 
   const styles = createStyles(theme);
+
+  const handleRemoveMedia = async (index: number) => {
+    const removed = media[index];
+    setMedia((current) => current.filter((_, i) => i !== index));
+
+    // Saved attachments go through the repository so their files are removed
+    // too; unsaved ones only have files on disk.
+    if (removed?.id) {
+      await deleteMedia(removed.id);
+    } else {
+      await deleteMediaFile(removed?.path);
+      await deleteMediaFile(removed?.thumbPath);
+    }
+  };
 
   const handleFavoritePress = () => {
     handleChanges("isFavorite", data.isFavorite === 0 ? 1 : 0);
@@ -115,15 +149,20 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = () => {
             multiline
             textAlignVertical="top"
           />
+          <MediaStrip
+            media={media}
+            onAdd={(picked) => setMedia((current) => [...current, ...picked])}
+            onRemove={handleRemoveMedia}
+          />
         </View>
       </View>
 
       <View style={styles.actionButtonContainer}>
-        {data.message && (
+        {(data.message || media.length > 0) ? (
           <TouchableOpacity onPress={handleSubmit} style={styles.saveButton}>
             <AntDesign name="pluscircle" size={50} color={Colors.text.textLight} />
           </TouchableOpacity>
-        )}
+        ) : null}
       </View>
     </View>
   );

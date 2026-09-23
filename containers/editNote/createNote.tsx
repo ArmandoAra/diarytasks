@@ -10,6 +10,9 @@ import {
 import { en, registerTranslation } from 'react-native-paper-dates';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { createNote, getNotesByDate } from '@/db/noteDb';
+import { addMedia } from '@/db/mediaDb';
+import MediaStrip, { DraftMedia } from '@/components/media/mediaStrip';
+import { deleteMediaFile } from '@/Utils/mediaStorage';
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
 import { AntDesign, Fontisto } from '@expo/vector-icons';
 import { Colors } from "@/constants/Colors";
@@ -35,6 +38,7 @@ const CreateNote: React.FC<CreateNotePropsInterface> = () => {
     };
 
     const [note, setNote] = useState<CreateNoteProps>(initialData);
+    const [media, setMedia] = useState<DraftMedia[]>([]);
     const messageInputRef = useRef<TextInput>(null);
 
     useEffect(() => {
@@ -46,22 +50,30 @@ const CreateNote: React.FC<CreateNotePropsInterface> = () => {
     };
 
     const handleSubmit = async () => {
-        if (!note.message) {
-            return Alert.alert("Message is required", "Please enter a message for the note.");
+        if (!note.message && media.length === 0) {
+            return Alert.alert("Nothing to save", "Write something or attach a photo.");
         }
+
         const created = await createNote(note);
-        if (!created.success) {
+        if (!created.success || !created.data) {
             return Alert.alert("Could not save", "Something went wrong creating the note.");
+        }
+
+        // The note id only exists after the insert, so attachments are linked
+        // here rather than when they were picked.
+        for (const item of media) {
+            await addMedia({ ...item, noteId: created.data });
         }
 
         const notes = await getNotesByDate(day);
         setDayNotes(notes.data ?? []);
         setNote(initialData);
+        setMedia([]);
         setCreateNoteOpen(false);
     };
 
     const handleCreateNotePress = () => {
-        if (note.message === "" && createNoteOpen) {
+        if (note.message === "" && media.length === 0 && createNoteOpen) {
             return setCreateNoteOpen(false);
         }
 
@@ -75,11 +87,26 @@ const CreateNote: React.FC<CreateNotePropsInterface> = () => {
         }
     };
 
-    const closeNote = () => {
-        if (createNoteOpen) {
-            setNote(initialData);
-            setCreateNoteOpen(false);
-        }
+    const closeNote = async () => {
+        if (!createNoteOpen) return;
+
+        // Files were copied to permanent storage when picked; discarding the
+        // draft has to remove them or they leak with no row pointing at them.
+        await Promise.all(media.flatMap((item) => [
+            deleteMediaFile(item.path),
+            deleteMediaFile(item.thumbPath),
+        ]));
+
+        setNote(initialData);
+        setMedia([]);
+        setCreateNoteOpen(false);
+    };
+
+    const handleRemoveMedia = async (index: number) => {
+        const [removed] = media.slice(index, index + 1);
+        setMedia((current) => current.filter((_, i) => i !== index));
+        await deleteMediaFile(removed?.path);
+        await deleteMediaFile(removed?.thumbPath);
     };
 
     const styles = createStyles(theme);
@@ -113,6 +140,11 @@ const CreateNote: React.FC<CreateNotePropsInterface> = () => {
                         placeholderTextColor={theme === "light" ? Colors.text.textDark : Colors.text.textLight}
                         multiline
                         textAlignVertical="top"
+                    />
+                    <MediaStrip
+                        media={media}
+                        onAdd={(picked) => setMedia((current) => [...current, ...picked])}
+                        onRemove={handleRemoveMedia}
                     />
                 </View>
             )}
