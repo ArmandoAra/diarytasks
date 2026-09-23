@@ -11,7 +11,6 @@ import { useFocusEffect } from 'expo-router';
 import { Feather, FontAwesome } from '@expo/vector-icons';
 
 import { BottomTabNavProps } from '@/interfaces/types';
-import { getMonthNumber } from '@/Utils/helpFunctions';
 import { getSortedDaysWithNotesAndTasks } from '@/db/mapDb';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { Colors } from '@/constants/Colors';
@@ -98,11 +97,11 @@ const MapTab = () => {
                                 <View style={styles.daysContainer}>
                                     {[...days]
                                         .sort((a, b) => Number(a.day) - Number(b.day))
-                                        .map(({ day, haveNote, allTasksCompleted, haveTask }) => (
+                                        .map(({ date, day, haveNote, allTasksCompleted, haveTask }) => (
                                             <TouchableOpacity
-                                                key={day}
+                                                key={date}
                                                 style={styles.dayButton}
-                                                onPress={() => handleNavigate(`${day}-${getMonthNumber(month)}-${year}`, haveTask)}
+                                                onPress={() => handleNavigate(date, haveTask)}
                                             >
                                                 {haveNote && <FontAwesome name="sticky-note" size={14} color={Colors.light.ternary2}
                                                     style={{ position: "absolute", bottom: 0, right: 0 }} />}

@@ -1,5 +1,5 @@
 import { DbResult, runQuery } from './client';
-import { getUniqueDates, MONTH_NAMES, processTasks, splitDate } from '@/Utils/helpFunctions';
+import { MONTH_NAMES, processTasks, splitDate } from '@/Utils/helpFunctions';
 
 export interface DayWithTasks {
     date: string;
@@ -28,11 +28,13 @@ export async function getAllDaysWithData(): Promise<DbResult<DayWithTasks[]>> {
 
 export async function getAllDaysWithNotes(): Promise<DbResult<string[]>> {
     const result = await runQuery('get days with notes', (db) =>
-        db.getAllAsync<{ date: string }>('SELECT date FROM Note'),
+        db.getAllAsync<{ date: string }>(
+            "SELECT DISTINCT date FROM Note WHERE date IS NOT NULL AND date <> '' ORDER BY date",
+        ),
     );
 
     if (!result.success || !result.data) return { ...result, data: [] };
-    return { success: true, data: getUniqueDates(result.data) };
+    return { success: true, data: result.data.map((row) => row.date) };
 }
 
 /**

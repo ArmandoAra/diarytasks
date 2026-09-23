@@ -2,6 +2,7 @@ import * as FileSystem from 'expo-file-system';
 import { Asset } from 'expo-asset';
 
 import { DATABASE_NAME, getDb, runQuery } from './client';
+import { runMigrations } from './migrations';
 
 const SQLITE_DIRECTORY = `${FileSystem.documentDirectory}SQLite/`;
 
@@ -80,6 +81,12 @@ export async function loadDatabase(): Promise<{ success: boolean; message: strin
         const schema = await createDatabaseStructure();
         if (!schema.success) {
             return { success: false, message: 'Error creating database structure' };
+        }
+
+        // Tables exist by now, so pending data migrations can run.
+        const migrated = await runQuery('run migrations', (db) => runMigrations(db));
+        if (!migrated.success) {
+            return { success: false, message: 'Error migrating database' };
         }
 
         return { success: true, message: 'Database loaded' };

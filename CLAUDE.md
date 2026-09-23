@@ -53,7 +53,7 @@ Siempre pasa por `db/*`, que devuelve un `DbResult` y **nunca lanza excepciones*
 
 ## 3. Flujo de datos (el patrón que se repite en todo el proyecto)
 
-1. `GlobalProvider.day` guarda el día seleccionado como string **`DD-MM-YYYY`**.
+1. `GlobalProvider.day` guarda el día seleccionado como string **ISO `YYYY-MM-DD`**.
 2. Al cambiar `day`, la pantalla hace fetch (`getTasksByDate` / `getNotesByDate`).
 3. El resultado se guarda en `tasks` / `dayNotes` del `GlobalProvider`.
 4. Editar/crear/borrar → escribe en SQLite → **re-lee el día** → actualiza el contexto.
@@ -68,6 +68,7 @@ Siempre pasa por `db/*`, que devuelve un `DbResult` y **nunca lanza excepciones*
 | Archivo | Contenido |
 |---|---|
 | `client.ts` | **Conexión única compartida** (`getDb`), `DbResult`, y los envoltorios `runQuery` (lecturas) y `runWrite` (escrituras). Todo lo demás se apoya aquí. |
+| `migrations.ts` | Migraciones de esquema en orden, versionadas con `PRAGMA user_version`. **Añade nuevas al final del array; nunca reordenes ni edites las ya publicadas.** |
 | `db.ts` | `loadDatabase()` copia `assets/db/diaryTasks.db` a disco en el primer arranque y aplica el esquema. Contiene el **SQL del esquema y los índices**. |
 | `taskDb.ts` | CRUD de tareas + `updateTaskStatus`. |
 | `noteDb.ts` | CRUD de notas + `updateFavorite`, `getFavoritesNotes`. |
@@ -101,7 +102,7 @@ Siempre pasa por `db/*`, que devuelve un `DbResult` y **nunca lanza excepciones*
 
 ### `components/` — presentación
 
-`task/task.tsx` (doble tap para completar) · `note/note.tsx` · `header/header.tsx` · `favoriteToggle/favToggle.tsx` · `delete/deletingPopUp.tsx` · `loader/loader.tsx`.
+`task/task.tsx` (doble tap para completar) · `note/note.tsx` · `header/header.tsx` · `favoriteToggle/favToggle.tsx` · `delete/deletingPopUp.tsx` · `loader/loader.tsx` · `linedPaper/linedPaper.tsx` (papel rayado, **un solo SVG con `<Pattern>`** — no vuelvas a renderizar una línea por nodo) · `emptyState/emptyState.tsx`.
 
 ### `Utils/`, `interfaces/`, `constants/`
 
@@ -124,8 +125,10 @@ TaskTemplate (id, userId→User, title, description, ...)   -- sin usar todavía
 Índices: `Task(date)`, `Note(date)`, `Note(isFavorite)`.
 
 - `status`: `'ToDo' | 'Completed'` · `priority`: `'Low' | 'Medium' | 'High'` · `isFavorite`: `0 | 1`.
-- `date` es **TEXT en formato `DD-MM-YYYY`**, no ISO. Por eso el orden cronológico
-  se calcula en JS (`getUniqueDates`, `parseDate`) y no con `ORDER BY date`.
+- `date` es **TEXT en formato ISO `YYYY-MM-DD`**. Ordena alfabéticamente =
+  cronológicamente, así que `ORDER BY date` y `BETWEEN` funcionan en SQL.
+- Las filas escritas por versiones antiguas usaban `DD-MM-YYYY`; la migración 1
+  de `db/migrations.ts` las convierte en el primer arranque.
 
 ---
 
@@ -134,7 +137,10 @@ TaskTemplate (id, userId→User, title, description, ...)   -- sin usar todavía
 - **Temas:** cada archivo con estilos define `createStyles(theme: 'light' | 'dark')` y lo llama con el `theme` del contexto. No uses `StyleSheet.create` estático si el componente cambia de color.
 - **Resultados de BD:** `DbResult<T> = { success, data?, message?, error? }`. Comprueba siempre `result.success` y usa `result.data ?? []`.
 - **Errores:** `db/` registra con `console.error` y devuelve `success: false`; la UI decide si muestra `Alert`.
-- **Fechas:** nunca formatees a mano. Usa `formatDate`, `parseDate`, `addDays`, `getNextDay`, `getBackDay` de `Utils/helpFunctions.ts`.
+- **Fechas:** nunca formatees a mano ni construyas la cadena concatenando. Usa
+  `formatDate`, `parseDate`, `addDays`, `getNextDay`, `getBackDay` de
+  `Utils/helpFunctions.ts`, y cuando ya tengas la fecha de una fila, pásala tal cual.
+- **Cambios de esquema o de datos:** van en `db/migrations.ts`, no en `db.ts`.
 
 ---
 
@@ -151,6 +157,8 @@ TaskTemplate (id, userId→User, title, description, ...)   -- sin usar todavía
    La FK está declarada pero se inserta `NULL`.
 5. **`TaskTemplate` y `getAllTasks` no se usan todavía.** Son puntos de extensión, no código muerto accidental.
 6. `useFocusEffect` cierra los modales al cambiar de pestaña; no dependas de que sigan abiertos.
+7. **Las cabeceras usan `useSafeAreaInsets()`**, no alturas fijas. Si pones un
+   `height` fijo en una cabecera, vuelves a meter el título bajo el notch.
 
 ---
 

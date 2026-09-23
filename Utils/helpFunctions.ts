@@ -2,36 +2,39 @@ import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
 import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 
 /**
- * Dates are stored in SQLite as the string `DD-MM-YYYY` (not ISO). Every helper
- * below reads and writes that format - change them together if it ever moves.
+ * Dates are stored in SQLite as ISO `YYYY-MM-DD` strings.
+ *
+ * ISO sorts lexicographically, so `ORDER BY date` and `BETWEEN` work directly
+ * in SQL. Rows written by older builds used `DD-MM-YYYY`; the migration in
+ * `db/migrations.ts` converts them on first launch.
  */
 export const MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December',
 ] as const;
 
-/** Splits a `DD-MM-YYYY` string into its (still zero-padded) parts. */
+/** Splits an ISO `YYYY-MM-DD` string into its (still zero-padded) parts. */
 export function splitDate(dateString: string): { day: string; month: string; year: string } {
-    const [day = '', month = '', year = ''] = dateString.split('-');
+    const [year = '', month = '', day = ''] = dateString.split('-');
     return { day, month, year };
 }
 
-/** Parses a `DD-MM-YYYY` string into a local `Date`. */
+/** Parses an ISO `YYYY-MM-DD` string into a local `Date` (not UTC). */
 export function parseDate(dateString: string): Date {
-    const [day, month, year] = dateString.split('-').map(Number);
+    const [year, month, day] = dateString.split('-').map(Number);
     return new Date(year, month - 1, day);
 }
 
-/** Formats a `Date` as the `DD-MM-YYYY` string used everywhere in the db. */
+/** Formats a `Date` as the ISO `YYYY-MM-DD` string used everywhere in the db. */
 export function formatDate(date: Date): string {
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = String(date.getFullYear());
 
-    return `${day}-${month}-${year}`;
+    return `${year}-${month}-${day}`;
 }
 
-/** Adds `amount` days to a `DD-MM-YYYY` string and returns the same format. */
+/** Adds `amount` days to an ISO date string and returns the same format. */
 export function addDays(dateString: string, amount: number): string {
     const date = parseDate(dateString);
     date.setDate(date.getDate() + amount);
@@ -98,13 +101,6 @@ const PRIORITY_COLORS: Record<string, string> = {
 export function priorityColorHandler(priority: string): string {
     return PRIORITY_COLORS[priority] ?? PRIORITY_COLORS.Low;
 }
-
-/** Unique dates from a row set, sorted chronologically. */
-export const getUniqueDates = (data: { date: string }[]): string[] => {
-    const uniqueDates = [...new Set(data.map((item) => item.date).filter(Boolean))];
-
-    return uniqueDates.sort((a, b) => parseDate(a).getTime() - parseDate(b).getTime());
-};
 
 /** Collapses task rows into one entry per date, flagging fully-done days. */
 export function processTasks(

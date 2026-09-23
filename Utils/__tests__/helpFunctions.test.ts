@@ -5,7 +5,6 @@ import {
     getBackDay,
     getMonthNumber,
     getNextDay,
-    getUniqueDates,
     findNoteById,
     findTaskById,
     parseDate,
@@ -17,55 +16,55 @@ import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
 
 describe('date formatting', () => {
-    it('formats a Date as zero-padded DD-MM-YYYY', () => {
-        expect(formatDate(new Date(2025, 0, 5))).toBe('05-01-2025');
-        expect(formatDate(new Date(2025, 11, 31))).toBe('31-12-2025');
+    it('formats a Date as zero-padded ISO YYYY-MM-DD', () => {
+        expect(formatDate(new Date(2025, 0, 5))).toBe('2025-01-05');
+        expect(formatDate(new Date(2025, 11, 31))).toBe('2025-12-31');
     });
 
     it('round-trips through parseDate', () => {
-        expect(formatDate(parseDate('09-03-2025'))).toBe('09-03-2025');
+        expect(formatDate(parseDate('2025-03-09'))).toBe('2025-03-09');
     });
 
     it('splits a date string into its parts', () => {
-        expect(splitDate('09-03-2025')).toEqual({ day: '09', month: '03', year: '2025' });
+        expect(splitDate('2025-03-09')).toEqual({ day: '09', month: '03', year: '2025' });
     });
 });
 
 describe('day navigation', () => {
     it('moves forward and back by one day', () => {
-        expect(getNextDay('01-01-2025')).toBe('02-01-2025');
-        expect(getBackDay('02-01-2025')).toBe('01-01-2025');
+        expect(getNextDay('2025-01-01')).toBe('2025-01-02');
+        expect(getBackDay('2025-01-02')).toBe('2025-01-01');
     });
 
     it('crosses month boundaries', () => {
-        expect(getNextDay('31-01-2025')).toBe('01-02-2025');
-        expect(getBackDay('01-03-2025')).toBe('28-02-2025');
+        expect(getNextDay('2025-01-31')).toBe('2025-02-01');
+        expect(getBackDay('2025-03-01')).toBe('2025-02-28');
     });
 
     it('crosses year boundaries', () => {
-        expect(getNextDay('31-12-2025')).toBe('01-01-2026');
-        expect(getBackDay('01-01-2025')).toBe('31-12-2024');
+        expect(getNextDay('2025-12-31')).toBe('2026-01-01');
+        expect(getBackDay('2025-01-01')).toBe('2024-12-31');
     });
 
     it('handles leap days', () => {
-        expect(getNextDay('28-02-2024')).toBe('29-02-2024');
-        expect(addDays('29-02-2024', 1)).toBe('01-03-2024');
+        expect(getNextDay('2024-02-28')).toBe('2024-02-29');
+        expect(addDays('2024-02-29', 1)).toBe('2024-03-01');
     });
 });
 
 describe('formatDateToString', () => {
     it('adds the right ordinal suffix', () => {
-        expect(formatDateToString('01-01-2025')).toBe('Day selected is January 1st, 2025');
-        expect(formatDateToString('02-01-2025')).toBe('Day selected is January 2nd, 2025');
-        expect(formatDateToString('03-01-2025')).toBe('Day selected is January 3rd, 2025');
-        expect(formatDateToString('04-01-2025')).toBe('Day selected is January 4th, 2025');
+        expect(formatDateToString('2025-01-01')).toBe('Day selected is January 1st, 2025');
+        expect(formatDateToString('2025-01-02')).toBe('Day selected is January 2nd, 2025');
+        expect(formatDateToString('2025-01-03')).toBe('Day selected is January 3rd, 2025');
+        expect(formatDateToString('2025-01-04')).toBe('Day selected is January 4th, 2025');
     });
 
     it('uses "th" for the 11-13 exception', () => {
-        expect(formatDateToString('11-01-2025')).toContain('11th');
-        expect(formatDateToString('12-01-2025')).toContain('12th');
-        expect(formatDateToString('13-01-2025')).toContain('13th');
-        expect(formatDateToString('21-01-2025')).toContain('21st');
+        expect(formatDateToString('2025-01-11')).toContain('11th');
+        expect(formatDateToString('2025-01-12')).toContain('12th');
+        expect(formatDateToString('2025-01-13')).toContain('13th');
+        expect(formatDateToString('2025-01-21')).toContain('21st');
     });
 
     it('does not throw on an unparseable date', () => {
@@ -85,30 +84,15 @@ describe('getMonthNumber', () => {
     });
 });
 
-describe('getUniqueDates', () => {
-    it('dedupes and sorts chronologically, not lexicographically', () => {
-        expect(getUniqueDates([
-            { date: '02-01-2025' },
-            { date: '01-02-2025' },
-            { date: '02-01-2025' },
-            { date: '31-12-2024' },
-        ])).toEqual(['31-12-2024', '02-01-2025', '01-02-2025']);
-    });
-
-    it('drops empty dates', () => {
-        expect(getUniqueDates([{ date: '' }, { date: '01-01-2025' }])).toEqual(['01-01-2025']);
-    });
-});
-
 describe('processTasks', () => {
     it('flags a day as complete only when every task is Completed', () => {
         expect(processTasks([
-            { date: '01-01-2025', status: 'Completed' },
-            { date: '01-01-2025', status: 'ToDo' },
-            { date: '02-01-2025', status: 'Completed' },
+            { date: '2025-01-01', status: 'Completed' },
+            { date: '2025-01-01', status: 'ToDo' },
+            { date: '2025-01-02', status: 'Completed' },
         ])).toEqual([
-            { date: '01-01-2025', allTasksCompleted: false },
-            { date: '02-01-2025', allTasksCompleted: true },
+            { date: '2025-01-01', allTasksCompleted: false },
+            { date: '2025-01-02', allTasksCompleted: true },
         ]);
     });
 
@@ -141,5 +125,28 @@ describe('priorityColorHandler', () => {
 
     it('never returns undefined for an unknown priority', () => {
         expect(priorityColorHandler('bogus')).toBe('#00A19D');
+    });
+});
+
+describe('ISO date ordering', () => {
+    it('sorts as plain strings, which is what lets SQL use ORDER BY', () => {
+        const dates = ['2025-02-01', '2024-12-31', '2025-01-02'];
+        expect([...dates].sort()).toEqual(['2024-12-31', '2025-01-02', '2025-02-01']);
+    });
+});
+
+describe('legacy date conversion (mirrors the SQL migration)', () => {
+    // The migration rewrites DD-MM-YYYY with substr(); this checks the same
+    // transformation and, critically, that it is a no-op on ISO rows.
+    const convert = (d: string) =>
+        /^\d{2}-\d{2}-\d{4}$/.test(d) ? `${d.slice(6, 10)}-${d.slice(3, 5)}-${d.slice(0, 2)}` : d;
+
+    it('converts the old format', () => {
+        expect(convert('09-03-2025')).toBe('2025-03-09');
+        expect(convert('31-12-2024')).toBe('2024-12-31');
+    });
+
+    it('leaves already-converted rows untouched', () => {
+        expect(convert('2025-03-09')).toBe('2025-03-09');
     });
 });
