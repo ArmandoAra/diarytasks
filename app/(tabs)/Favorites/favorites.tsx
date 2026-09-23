@@ -11,6 +11,10 @@ import { useFocusEffect } from 'expo-router';
 import { Colors } from '@/constants/Colors';
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
 import { getFavoritesNotes, updateFavorite, getNotesByDate } from '@/db/noteDb';
+import { getMediaForNotes, NoteMedia } from '@/db/mediaDb';
+import MediaPreview from '@/components/media/mediaPreview';
+import MediaViewer from '@/components/media/mediaViewer';
+import { formatDateToString } from '@/Utils/helpFunctions';
 import { Fontisto } from '@expo/vector-icons';
 import Loader from '@/components/loader/loader';
 import EmptyState from '@/components/emptyState/emptyState';
@@ -27,6 +31,8 @@ const FavoritesTab = () => {
     const insets = useSafeAreaInsets();
 
     const [favoritesNotes, setFavoritesNotes] = useState<CreateNoteProps[]>([]);
+    const [mediaByNote, setMediaByNote] = useState<Record<string, NoteMedia[]>>({});
+    const [viewer, setViewer] = useState<{ media: NoteMedia[]; index: number } | null>(null);
 
     useFocusEffect(
         useCallback(() => {
@@ -34,7 +40,11 @@ const FavoritesTab = () => {
                 setLoading(true);
                 try {
                     const favoriteNotes = await getFavoritesNotes();
-                    setFavoritesNotes(favoriteNotes.data ?? []);
+                    const notes = favoriteNotes.data ?? [];
+                    setFavoritesNotes(notes);
+
+                    const media = await getMediaForNotes(notes.map((note) => String(note.id)));
+                    setMediaByNote(media.data ?? {});
                 } finally {
                     setLoading(false);
                 }
@@ -85,7 +95,10 @@ const FavoritesTab = () => {
                             hint="Tap the heart on any note to keep it here."
                         />
                     }
-                    renderItem={({ item: note }) => (
+                    renderItem={({ item: note }) => {
+                        const media = mediaByNote[String(note.id)] ?? [];
+
+                        return (
                         <View style={styles.noteContainer}>
                             <LinedPaper
                                 backgroundColor={theme === "light" ? Colors.light.background2 : Colors.dark.primary}
@@ -98,11 +111,28 @@ const FavoritesTab = () => {
                             >
                                 <Fontisto name="heart" size={24} color="red" />
                             </TouchableOpacity>
+                            {media.length > 0 && (
+                                <TouchableOpacity
+                                    onPress={() => setViewer({ media, index: 0 })}
+                                    accessibilityLabel={`Open ${media.length} attachment${media.length > 1 ? 's' : ''}`}
+                                    style={styles.notePreview}
+                                >
+                                    <MediaPreview media={media} height={120} />
+                                </TouchableOpacity>
+                            )}
                             {note.title ? <Text style={styles.noteTitle} numberOfLines={2}>{note.title}</Text> : null}
                             {note.message ? <Text style={styles.noteMessage}>{note.message}</Text> : null}
-                            {note.date ? <Text style={styles.noteDate}>{note.date}</Text> : null}
+                            {note.date ? <Text style={styles.noteDate}>{formatDateToString(note.date).replace('Day selected is ', '')}</Text> : null}
                         </View>
-                    )}
+                        );
+                    }}
+                />
+            )}
+            {viewer && (
+                <MediaViewer
+                    media={viewer.media}
+                    initialIndex={viewer.index}
+                    onClose={() => setViewer(null)}
                 />
             )}
         </View>
@@ -150,6 +180,10 @@ const createStyles = (theme: 'light' | 'dark') =>
             right: 20,
             top: 15,
             zIndex: 2,
+        },
+        notePreview: {
+            marginTop: 26,
+            marginBottom: 4,
         },
         noteTitle: {
             fontFamily: "Kavivanar",

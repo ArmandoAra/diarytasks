@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 
@@ -6,6 +6,7 @@ import { NoteProps } from '@/interfaces/NotesInterfaces';
 import Favorite from '../favoriteToggle/favToggle';
 import LinedPaper from '../linedPaper/linedPaper';
 import MediaPreview from '../media/mediaPreview';
+import MediaViewer from '../media/mediaViewer';
 import { NoteMedia } from '@/db/mediaDb';
 import { Colors } from '@/constants/Colors';
 import { useStatesContext } from '@/context/StatesProvider';
@@ -14,19 +15,34 @@ import { useThemeContext } from '@/context/ThemeProvider';
 const Note: React.FC<NoteProps> = ({ id, title, message, isFavorite, media = [] }: NoteProps) => {
     const { setEditNoteOpen, setDeletingOpen } = useStatesContext();
     const { theme } = useThemeContext();
+    const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
     const styles = createStyles(theme);
 
 
     return (
         <View style={styles.container}>
+            {viewerIndex !== null && (
+                <MediaViewer
+                    media={media}
+                    initialIndex={viewerIndex}
+                    onClose={() => setViewerIndex(null)}
+                />
+            )}
             <View style={styles.card}>
                 <LinedPaper
                     backgroundColor={theme === "light" ? Colors.light.background2 : Colors.dark.ternary}
                 />
 
                 <View style={styles.content}>
-                    <MediaPreview media={media} />
+                    {media.length > 0 && (
+                        <TouchableOpacity
+                            onPress={() => setViewerIndex(0)}
+                            accessibilityLabel={`Open ${media.length} attachment${media.length > 1 ? 's' : ''}`}
+                        >
+                            <MediaPreview media={media} />
+                        </TouchableOpacity>
+                    )}
                     <Text style={styles.title} numberOfLines={2}>{title}</Text>
                     <Text style={styles.message} numberOfLines={5}>{message}</Text>
                 </View>
