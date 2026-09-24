@@ -1,42 +1,52 @@
 # DiaryTasks
 
-DiaryTasks is a mobile application developed in React Native for Android devices that allows users to efficiently manage daily tasks and notes.
+DiaryTasks is a mobile application built with **React Native and Expo** that lets you manage
+daily tasks and notes. It stores everything in a local SQLite database, so it works fully
+offline — there is no backend and no account.
 
 ## Features
 
-- **Task Management**: Add, edit, and delete daily tasks.
-- **Daily Notes**: Keep track of your daily notes.
-- **Intuitive Interface**: Simple and easy-to-use design.
+- **Task management**: add, edit, delete and complete daily tasks, with priority levels.
+- **Daily notes**: keep notes per day and mark the ones you want to keep handy as favorites.
+- **Calendar map**: see at a glance which days have tasks or notes, and jump to any of them.
+- **Light and dark themes**, remembered between launches.
 
 ## Prerequisites
 
-Before installing and running the application, ensure you have the following installed:
+- **Node.js** 18 or newer — [download](https://nodejs.org/)
+- The **Expo Go** app on your phone, or an Android emulator / iOS simulator.
 
-- **Node.js**: [Download Node.js](https://nodejs.org/)
-- **React Native CLI**: Install it globally by running:
-
-  ```bash
-  npm install -g react-native-cli
-
-  ## Android Studio: Required to emulate or connect Android devices. Make sure ANDROID_HOME and environment variables are properly set up.
-  ```
+You do *not* need a global React Native CLI install: everything runs through `npx expo`.
 
 ## Installation
 
-Follow these steps to install and run the application on your Android device:
+```bash
+git clone https://github.com/ArmandoAra/diarytasks.git
+cd diarytasks
+npm install
+```
 
-1. Clone the repository:
-   git clone https://github.com/ArmandoAra/diarytasks.git
-   cd diarytasks
+## Running
 
-2. Install dependencies:
-   npm install
+```bash
+npm start          # start the Expo dev server, then scan the QR code with Expo Go
+npm run android    # open directly on an Android device or emulator
+npm run ios        # open directly on an iOS simulator
+npm run web        # run in the browser
+```
 
-3. Set up the development environment:
-   Android: Make sure your Android device or emulator is set up and running. For more details, check the official React Native documentation.
+## Development
 
-4.Run the application:
-npx react-native run-android
+```bash
+npm run typecheck  # TypeScript, no emit
+npm run test:ci    # run the test suite once
+npm test           # run the tests in watch mode
+npm run lint       # expo lint
+```
 
-License
+An overview of the codebase — architecture, data flow, a file-by-file index and the known
+gotchas — lives in [`CLAUDE.md`](./CLAUDE.md).
+
+## License
+
 This project is licensed under the MIT License. See the LICENSE file for more details.

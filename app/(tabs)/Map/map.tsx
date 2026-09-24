@@ -11,12 +11,16 @@ import { useFocusEffect } from 'expo-router';
 import { Feather, FontAwesome } from '@expo/vector-icons';
 
 import { BottomTabNavProps } from '@/interfaces/types';
-import { getMonthNumber } from '@/Utils/helpFunctions';
 import { getSortedDaysWithNotesAndTasks } from '@/db/mapDb';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { Colors } from '@/constants/Colors';
 import { useStatesContext } from '@/context/StatesProvider';
 import { useThemeContext } from '@/context/ThemeProvider';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import EmptyState from '@/components/emptyState/emptyState';
+import { Image } from 'expo-image';
+import { getDayCovers } from '@/db/mediaDb';
+import { toAbsoluteUri } from '@/Utils/mediaStorage';
 
 interface SortedDataProps {
     date: string;
@@ -33,15 +37,21 @@ const MapTab = () => {
     const { setDay } = useGlobalContext();
     const { setLoading } = useStatesContext();
     const navigation = useNavigation<BottomTabNavProps>();
+    const insets = useSafeAreaInsets();
 
     const [daysWithData, setDaysWithData] = useState<SortedDataProps[]>([]);
+    const [covers, setCovers] = useState<Record<string, string>>({});
 
     useFocusEffect(
         useCallback(() => {
             const fetchAllDaysWithData = async () => {
                 setLoading(true);
                 try {
-                    const result = await getSortedDaysWithNotesAndTasks();
+                    const [result, dayCovers] = await Promise.all([
+                        getSortedDaysWithNotesAndTasks(),
+                        getDayCovers(),
+                    ]);
+                    setCovers(dayCovers.data ?? {});
                     if (Array.isArray(result)) {
                         setDaysWithData(result);
                     } else {
@@ -73,12 +83,19 @@ const MapTab = () => {
         return acc;
     }, {} as Record<string, Record<string, SortedDataProps[]>>);
 
-    const styles = createStyles(theme as "light" | "dark");
+    const styles = createStyles(theme);
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>MAP</Text>
-            <ScrollView style={styles.scrollView}>
+            <Text style={[styles.title, { paddingTop: insets.top + 10 }]}>MAP</Text>
+            <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+                {daysWithData.length === 0 && (
+                    <EmptyState
+                        icon="calendar-outline"
+                        title="Nothing recorded yet"
+                        hint="Days with tasks or notes will show up here."
+                    />
+                )}
                 {Object.entries(groupedByYearAndMonth).map(([year, months]) => (
                     <View key={year} style={styles.yearContainer}>
                         <Text style={styles.yearTitle}>{year}</Text>
@@ -86,18 +103,27 @@ const MapTab = () => {
                             <View key={month} style={styles.monthContainer}>
                                 <Text style={styles.monthTitle}>{month}</Text>
                                 <View style={styles.daysContainer}>
-                                    {days
+                                    {[...days]
                                         .sort((a, b) => Number(a.day) - Number(b.day))
-                                        .map(({ day, haveNote, allTasksCompleted, haveTask }) => (
+                                        .map(({ date, day, haveNote, allTasksCompleted, haveTask }) => (
                                             <TouchableOpacity
-                                                key={day}
+                                                key={date}
                                                 style={styles.dayButton}
-                                                onPress={() => handleNavigate(`${day}-${getMonthNumber(month)}-${year}`, haveTask)}
+                                                onPress={() => handleNavigate(date, haveTask)}
+                                                accessibilityLabel={`Open ${date}`}
                                             >
-                                                {haveNote && <FontAwesome name="sticky-note" size={14} color={Colors.light.ternary2}
-                                                    style={{ position: "absolute", bottom: 0, right: 0 }} />}
-                                                {allTasksCompleted && <Feather name="check-circle" size={16} color="green" style={{ position: "absolute", top: 0, left: 0 }} />}
-                                                <Text style={styles.dayText}>{String(day)}</Text>
+                                                {covers[date] ? (
+                                                    <Image
+                                                        source={{ uri: toAbsoluteUri(covers[date]) }}
+                                                        style={styles.dayCover}
+                                                        contentFit="cover"
+                                                        transition={100}
+                                                    />
+                                                ) : null}
+                                                {haveNote && !covers[date] && <FontAwesome name="sticky-note" size={14} color={Colors.light.ternary2}
+                                                    style={{ position: "absolute", bottom: 2, right: 2 }} />}
+                                                {allTasksCompleted && <Feather name="check-circle" size={16} color="green" style={{ position: "absolute", top: 2, left: 2 }} />}
+                                                <Text style={[styles.dayText, covers[date] ? styles.dayTextOnCover : null]}>{String(day)}</Text>
                                             </TouchableOpacity>
                                         ))}
                                 </View>
@@ -114,29 +140,28 @@ const createStyles = (theme: 'light' | 'dark') =>
     StyleSheet.create({
         container: {
             flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
             backgroundColor: theme === "light" ? Colors.light.background2 : Colors.dark.primary2,
         },
         title: {
             color: theme === "light" ? Colors.text.textDark : Colors.text.textLight,
-            height: 105,
+            paddingBottom: 14,
             width: "100%",
             backgroundColor: theme === "light" ? Colors.light.primary : Colors.dark.background2,
-            position: "absolute",
             elevation: 5,
             textAlign: "center",
             textAlignVertical: "center",
             fontSize: 20,
             fontFamily: "Pacifico",
             padding: 10,
-            top: 0,
             zIndex: 1,
         },
         scrollView: {
             width: "100%",
-            height: "100%",
-            marginTop: 100,
+            flex: 1,
+        },
+        scrollContent: {
+            flexGrow: 1,
+            paddingBottom: 20,
         },
         yearContainer: {
             flexDirection: "column",
@@ -185,6 +210,17 @@ const createStyles = (theme: 'light' | 'dark') =>
             elevation: 5,
             justifyContent: 'center',
             alignItems: 'center',
+        },
+        dayCover: {
+            ...StyleSheet.absoluteFillObject,
+            borderRadius: 16,
+        },
+        dayTextOnCover: {
+            color: "#FFFFFF",
+            // The cover can be any colour, so the number needs its own contrast.
+            textShadowColor: "rgba(0,0,0,0.85)",
+            textShadowRadius: 4,
+            textShadowOffset: { width: 0, height: 1 },
         },
         dayText: {
             fontSize: 22,

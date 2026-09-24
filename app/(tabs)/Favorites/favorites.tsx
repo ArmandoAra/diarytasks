@@ -4,16 +4,22 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    ScrollView,
+    FlatList,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 
 import { Colors } from '@/constants/Colors';
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
 import { getFavoritesNotes, updateFavorite, getNotesByDate } from '@/db/noteDb';
-import Svg, { Line } from 'react-native-svg';
+import { getMediaForNotes, NoteMedia } from '@/db/mediaDb';
+import MediaPreview from '@/components/media/mediaPreview';
+import MediaViewer from '@/components/media/mediaViewer';
+import { formatDateToString } from '@/Utils/helpFunctions';
 import { Fontisto } from '@expo/vector-icons';
 import Loader from '@/components/loader/loader';
+import EmptyState from '@/components/emptyState/emptyState';
+import LinedPaper from '@/components/linedPaper/linedPaper';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStatesContext } from '@/context/StatesProvider';
 import { useThemeContext } from '@/context/ThemeProvider';
 import { useGlobalContext } from '@/context/GlobalProvider';
@@ -21,86 +27,114 @@ import { useGlobalContext } from '@/context/GlobalProvider';
 const FavoritesTab = () => {
     const { loading, setLoading } = useStatesContext();
     const { theme } = useThemeContext();
-    const { day, dayNotes, setDayNotes } = useGlobalContext();
+    const { day, setDayNotes } = useGlobalContext();
+    const insets = useSafeAreaInsets();
 
     const [favoritesNotes, setFavoritesNotes] = useState<CreateNoteProps[]>([]);
+    const [mediaByNote, setMediaByNote] = useState<Record<string, NoteMedia[]>>({});
+    const [viewer, setViewer] = useState<{ media: NoteMedia[]; index: number } | null>(null);
 
     useFocusEffect(
         useCallback(() => {
             const fetchFavorites = async () => {
+                setLoading(true);
                 try {
                     const favoriteNotes = await getFavoritesNotes();
-                    setFavoritesNotes(favoriteNotes.data as CreateNoteProps[]);
-                } catch (error) {
-                    console.error("Error fetching favorites:", error);
+                    const notes = favoriteNotes.data ?? [];
+                    setFavoritesNotes(notes);
+
+                    const media = await getMediaForNotes(notes.map((note) => String(note.id)));
+                    setMediaByNote(media.data ?? {});
+                } finally {
+                    setLoading(false);
                 }
             };
             fetchFavorites();
-            setLoading(false);
-        }, [favoritesNotes.length])
+        }, [setLoading])
     );
 
     const handleFavoriteToggle = async (id: string) => {
+        const removed = favoritesNotes.find(note => note.id === id);
 
-        try {
-            await updateFavorite(id, 0);
-            setFavoritesNotes(favoritesNotes.filter(note => note.id !== id));
-
-            let variab = favoritesNotes.map(note => {
-                if (note.id === id) {
-                    return note.date;
-                }
-            })
-
-            if (variab.includes(day)) {
-                let result = await getNotesByDate(day);
-                if (result) setDayNotes(result.data as CreateNoteProps[])
-            }
-        } catch (error) {
-            console.error("Error toggling favorite:", error);
+        const result = await updateFavorite(id, 0);
+        if (!result.success) {
+            console.warn('Error toggling favorite');
+            return;
         }
-        setLoading(false);
 
+        setFavoritesNotes(notes => notes.filter(note => note.id !== id));
+
+        // The note may also be on screen in the Notes tab for the selected day;
+        // refresh that list so both views agree.
+        if (removed?.date === day) {
+            const notes = await getNotesByDate(day);
+            setDayNotes(notes.data ?? []);
+        }
     };
 
-    const styles = createStyles(theme as "light" | "dark");
-    const stylesSvg = createStylesSvg(theme as "light" | "dark");
+    const styles = createStyles(theme);
+    const stylesSvg = createStylesSvg();
 
     return (
         <View style={styles.container}>
-            <View style={styles.header}>
+            <View style={[styles.header, { paddingTop: insets.top }]}>
                 <Text style={styles.headerText}>Favorites</Text>
             </View>
-            <ScrollView style={styles.scrollView}>
-                {!loading ? (
-                    favoritesNotes.map((note) => (
-                        <View key={note.id} style={styles.noteContainer}>
-                            <View style={stylesSvg.background}>
-                                {Array.from({ length: 20 }).map((_, i) => (
-                                    <Svg key={i} height="26" width="100%">
-                                        <Line
-                                            x1="0"
-                                            y1="19"
-                                            x2="100%"
-                                            y2="20"
-                                            stroke="rgba(8, 8, 9, 0.1)"
-                                            strokeWidth="1"
-                                        />
-                                    </Svg>
-                                ))}
-                            </View>
-                            <TouchableOpacity style={styles.favoriteButton} onPress={() => handleFavoriteToggle(note.id)}>
+            {loading ? (
+                <Loader />
+            ) : (
+                <FlatList
+                    data={favoritesNotes}
+                    keyExtractor={(item) => String(item.id)}
+                    style={styles.list}
+                    contentContainerStyle={styles.listContent}
+                    ListEmptyComponent={
+                        <EmptyState
+                            icon="heart-outline"
+                            title="No favourite notes yet"
+                            hint="Tap the heart on any note to keep it here."
+                        />
+                    }
+                    renderItem={({ item: note }) => {
+                        const media = mediaByNote[String(note.id)] ?? [];
+
+                        return (
+                        <View style={styles.noteContainer}>
+                            <LinedPaper
+                                backgroundColor={theme === "light" ? Colors.light.background2 : Colors.dark.primary}
+                                spacing={26}
+                            />
+                            <TouchableOpacity
+                                style={styles.favoriteButton}
+                                onPress={() => handleFavoriteToggle(note.id)}
+                                accessibilityLabel="Remove from favourites"
+                            >
                                 <Fontisto name="heart" size={24} color="red" />
                             </TouchableOpacity>
-                            {note.title && <Text style={styles.noteTitle}>{note.title}</Text>}
-                            {note.message && <Text style={styles.noteMessage}>{note.message}</Text>}
-                            {note.date && <Text style={styles.noteDate}>{note.date}</Text>}
+                            {media.length > 0 && (
+                                <TouchableOpacity
+                                    onPress={() => setViewer({ media, index: 0 })}
+                                    accessibilityLabel={`Open ${media.length} attachment${media.length > 1 ? 's' : ''}`}
+                                    style={styles.notePreview}
+                                >
+                                    <MediaPreview media={media} height={120} />
+                                </TouchableOpacity>
+                            )}
+                            {note.title ? <Text style={styles.noteTitle} numberOfLines={2}>{note.title}</Text> : null}
+                            {note.message ? <Text style={styles.noteMessage}>{note.message}</Text> : null}
+                            {note.date ? <Text style={styles.noteDate}>{formatDateToString(note.date).replace('Day selected is ', '')}</Text> : null}
                         </View>
-                    ))
-                ) : (
-                    <Loader />
-                )}
-            </ScrollView>
+                        );
+                    }}
+                />
+            )}
+            {viewer && (
+                <MediaViewer
+                    media={viewer.media}
+                    initialIndex={viewer.index}
+                    onClose={() => setViewer(null)}
+                />
+            )}
         </View>
     );
 };
@@ -113,10 +147,9 @@ const createStyles = (theme: 'light' | 'dark') =>
         },
         header: {
             backgroundColor: theme === "light" ? Colors.light.primary : Colors.dark.background2,
-            height: 105,
             width: "100%",
-            justifyContent: "center",
-            position: "absolute",
+            paddingBottom: 18,
+            justifyContent: "flex-end",
         },
         headerText: {
             fontFamily: "Pacifico",
@@ -124,9 +157,13 @@ const createStyles = (theme: 'light' | 'dark') =>
             textAlign: "center",
             color: theme === "light" ? Colors.text.textDark : Colors.text.textLight,
         },
-        scrollView: {
-            marginTop: 105,
+        list: {
+            flex: 1,
             backgroundColor: theme === "light" ? Colors.light.background : Colors.dark.background,
+        },
+        listContent: {
+            flexGrow: 1,
+            paddingBottom: 20,
         },
         noteContainer: {
             overflow: 'hidden',
@@ -143,6 +180,10 @@ const createStyles = (theme: 'light' | 'dark') =>
             right: 20,
             top: 15,
             zIndex: 2,
+        },
+        notePreview: {
+            marginTop: 26,
+            marginBottom: 4,
         },
         noteTitle: {
             fontFamily: "Kavivanar",
@@ -165,7 +206,7 @@ const createStyles = (theme: 'light' | 'dark') =>
         },
     });
 
-const createStylesSvg = (theme: 'light' | 'dark') =>
+const createStylesSvg = () =>
     StyleSheet.create({
         background: {
             position: 'absolute',

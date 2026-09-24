@@ -11,10 +11,9 @@ import {
 import { Picker } from '@react-native-picker/picker';
 
 // Utils
-import { searchTaskById } from '@/Utils/helpFunctions';
+import { findTaskById } from '@/Utils/helpFunctions';
 
 // Date Picker
-import { en, registerTranslation } from 'react-native-paper-dates'
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 import { getTasksByDate, updateTaskById } from '@/db/taskDb';
@@ -22,7 +21,6 @@ import { AntDesign, FontAwesome } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { useStatesContext } from '@/context/StatesProvider';
 import { useThemeContext } from '@/context/ThemeProvider';
-registerTranslation('en', en)
 
 const EditTaskScreen = () => {
   const { theme } = useThemeContext();
@@ -41,17 +39,25 @@ const EditTaskScreen = () => {
   );
 
   useEffect(() => {
-    const selectedTask = searchTaskById(editTaskOpen.id, tasks);
+    const selectedTask = findTaskById(editTaskOpen.id, tasks);
+
+    // The task can be missing if it was deleted while the editor was opening;
+    // indexing blindly used to crash the screen.
+    if (!selectedTask) {
+      console.warn('Task not found:', editTaskOpen.id);
+      setEditTaskOpen({ isOpen: false, id: "" });
+      return;
+    }
+
     setData((prevData) => ({
       ...prevData,
-      title: selectedTask[0].title,
-      description: selectedTask[0].description,
-      priority: selectedTask[0].priority,
-      status: selectedTask[0].status,
-      date: selectedTask[0].date
+      title: selectedTask.title,
+      description: selectedTask.description,
+      priority: selectedTask.priority,
+      status: selectedTask.status,
+      date: selectedTask.date,
     }));
-
-  }, [])
+  }, [editTaskOpen.id, tasks, setEditTaskOpen])
 
   const handleChanges = (key: keyof CreateTaskProps, value: string | Date) => {
     setData(prevData => {
@@ -60,25 +66,30 @@ const EditTaskScreen = () => {
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!data.description) {
       return Alert.alert("Message is required", "Please enter a message for the task.");
     }
-    updateTaskById(editTaskOpen.id.toString(), data)
+
     setLoading(true);
-    const fetchTasks = async () => {
+    try {
+      // The update has to settle before the refetch, otherwise the list can be
+      // reloaded from the pre-edit rows.
+      const updated = await updateTaskById(editTaskOpen.id.toString(), data);
+      if (!updated.success) {
+        Alert.alert("Could not save", "Something went wrong updating the task.");
+        return;
+      }
+
       const response = await getTasksByDate(data.date);
       if (response.success && response.data) {
         setTasks(response.data);
-        setLoading(false);
-      } else {
-        console.log("Error at edit Task")
-        setLoading(false);
       }
-    };
-    fetchTasks();
 
-    setEditTaskOpen({ isOpen: false, id: "" })
+      setEditTaskOpen({ isOpen: false, id: "" });
+    } finally {
+      setLoading(false);
+    }
   };
 
 

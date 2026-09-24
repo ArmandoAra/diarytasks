@@ -60,6 +60,20 @@
           "resizeMode": "contain",
           "backgroundColor": "#8BA6A6"
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "DiaryTasks needs access to your photos so you can attach them to a note.",
+          "cameraPermission": "DiaryTasks needs access to your camera so you can take a photo for a note."
+        }
+      ],
+      [
+        "expo-video",
+        {
+          "supportsBackgroundPlayback": false,
+          "supportsPictureInPicture": false
+        }
       ]
     ],
     "experiments": {

@@ -37,8 +37,7 @@ export const CreateNewTask = () => {
                 descriptionInputRef.current?.focus(); // Asegurar que el input se enfoca después de renderizarse
             }, 100);
         } else {
-            onSubmit();
-            setCreateTaskOpen(false)
+            onSubmit().finally(() => setCreateTaskOpen(false));
         }
     }
 
@@ -65,12 +64,15 @@ export const CreateNewTask = () => {
 
     const onSubmit = async () => {
         if (!data.description) return Alert.alert("Please enter a description", "Description is required");
-        createTask(data).then(() => {
-            getTasksByDate(day).then((tasks) => setTasks(tasks.data as CreateTaskProps[]))
-            setData(initialData(day))
-        }).catch((error) => {
-            console.log(error);
-        });
+
+        const created = await createTask(data);
+        if (!created.success) {
+            return Alert.alert("Could not save", "Something went wrong creating the task.");
+        }
+
+        const tasks = await getTasksByDate(day);
+        setTasks(tasks.data ?? []);
+        setData(initialData(day));
     };
 
     return (

@@ -8,18 +8,19 @@ import {
   Alert,
 } from 'react-native';
 
-import { searchNoteById } from '@/Utils/helpFunctions';
-import { en, registerTranslation } from 'react-native-paper-dates';
+import { findNoteById } from '@/Utils/helpFunctions';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { getNotesByDate, updateNoteById } from '@/db/noteDb';
+import { addMedia, deleteMedia, getMediaForNote } from '@/db/mediaDb';
+import MediaStrip, { DraftMedia } from '@/components/media/mediaStrip';
+import { deleteMediaFile } from '@/Utils/mediaStorage';
 import { CreateNoteProps } from '@/interfaces/NotesInterfaces';
 import { AntDesign, FontAwesome, Fontisto } from '@expo/vector-icons';
 import { Colors } from "@/constants/Colors";
-import Svg, { Line } from 'react-native-svg';
+import LinedPaper from '@/components/linedPaper/linedPaper';
 import { useStatesContext } from '@/context/StatesProvider';
 import { useThemeContext } from '@/context/ThemeProvider';
 
-registerTranslation('en', en);
 
 interface EditNoteScreenProps { }
 
@@ -37,45 +38,76 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = () => {
   };
 
   const [data, setData] = useState<CreateNoteProps>(initialData);
+  const [media, setMedia] = useState<DraftMedia[]>([]);
 
   useEffect(() => {
-    const selectedNote = searchNoteById(editNoteOpen.id, dayNotes);
-    if (selectedNote && selectedNote.length > 0) {
-      setData((prevData) => ({
-        ...prevData,
-        title: selectedNote[0].title,
-        message: selectedNote[0].message,
-        isFavorite: selectedNote[0].isFavorite,
-        date: selectedNote[0].date,
-        id: selectedNote[0].id, // Include the ID
-      }));
-    } else {
-      console.warn("Note not found!");
-      setData(initialData);
+    const selectedNote = findNoteById(editNoteOpen.id, dayNotes);
+
+    if (!selectedNote) {
+      console.warn('Note not found:', editNoteOpen.id);
+      setEditNoteOpen({ isOpen: false, id: "" });
+      return;
     }
-  }, [editNoteOpen.id, dayNotes]);
+
+    setData({
+      id: selectedNote.id,
+      title: selectedNote.title,
+      message: selectedNote.message,
+      isFavorite: selectedNote.isFavorite,
+      date: selectedNote.date,
+    });
+  }, [editNoteOpen.id, dayNotes, setEditNoteOpen]);
+
+  useEffect(() => {
+    if (!data.id) return;
+    let cancelled = false;
+
+    getMediaForNote(String(data.id)).then((result) => {
+      if (!cancelled) setMedia(result.data ?? []);
+    });
+
+    return () => { cancelled = true; };
+  }, [data.id]);
 
   const handleChanges = (key: keyof CreateNoteProps, value: string | number) => {
     setData(prevData => ({ ...prevData, [key]: value }));
   };
 
   const handleSubmit = async () => {
-    if (!data.message) {
-      return Alert.alert("Message is required", "Please enter a message for the note.");
+    if (!data.message && media.length === 0) {
+      return Alert.alert("Nothing to save", "Write something or attach a photo.");
     }
 
-    try {
-      await updateNoteById(data.id.toString(), data); // Use data.id
-      const notes = await getNotesByDate(data.date);
-      setDayNotes(notes.data as CreateNoteProps[]);
-      setEditNoteOpen({ isOpen: false, id: "" });
-    } catch (error) {
-      console.error("Error updating note:", error);
+    const updated = await updateNoteById(data.id.toString(), data);
+    if (!updated.success) {
+      return Alert.alert("Could not save", "Something went wrong updating the note.");
     }
+
+    // Attachments added during this edit have no row yet; existing ones do.
+    for (const item of media) {
+      if (!item.id) await addMedia({ ...item, noteId: String(data.id) });
+    }
+
+    const notes = await getNotesByDate(data.date);
+    setDayNotes(notes.data ?? []);
+    setEditNoteOpen({ isOpen: false, id: "" });
   };
 
-  const styles = createStyles(theme as "light" | "dark");
-  const stylesSvg = createStylesSvg();
+  const styles = createStyles(theme);
+
+  const handleRemoveMedia = async (index: number) => {
+    const removed = media[index];
+    setMedia((current) => current.filter((_, i) => i !== index));
+
+    // Saved attachments go through the repository so their files are removed
+    // too; unsaved ones only have files on disk.
+    if (removed?.id) {
+      await deleteMedia(removed.id);
+    } else {
+      await deleteMediaFile(removed?.path);
+      await deleteMediaFile(removed?.thumbPath);
+    }
+  };
 
   const handleFavoritePress = () => {
     handleChanges("isFavorite", data.isFavorite === 0 ? 1 : 0);
@@ -99,20 +131,7 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = () => {
         </View>
 
         <View style={styles.notebook}>
-          <View style={stylesSvg.background}>
-            {Array.from({ length: 20 }).map((_, i) => (
-              <Svg key={i} height="24" width="100%">
-                <Line
-                  x1="0"
-                  y1="19"
-                  x2="100%"
-                  y2="20"
-                  stroke="rgba(8, 8, 9, 0.1)"
-                  strokeWidth="1"
-                />
-              </Svg>
-            ))}
-          </View>
+          <LinedPaper backgroundColor={theme === "light" ? Colors.light.background2 : Colors.dark.ternary} />
 
           <TextInput
             style={styles.titleInput}
@@ -128,15 +147,20 @@ const EditNoteScreen: React.FC<EditNoteScreenProps> = () => {
             multiline
             textAlignVertical="top"
           />
+          <MediaStrip
+            media={media}
+            onAdd={(picked) => setMedia((current) => [...current, ...picked])}
+            onRemove={handleRemoveMedia}
+          />
         </View>
       </View>
 
       <View style={styles.actionButtonContainer}>
-        {data.message && (
+        {(data.message || media.length > 0) ? (
           <TouchableOpacity onPress={handleSubmit} style={styles.saveButton}>
             <AntDesign name="pluscircle" size={50} color={Colors.text.textLight} />
           </TouchableOpacity>
-        )}
+        ) : null}
       </View>
     </View>
   );
@@ -224,22 +248,5 @@ const createStyles = (theme: 'light' | 'dark') =>
     },
   });
 
-const createStylesSvg = () =>
-  StyleSheet.create({
-    container: {
-      backgroundColor: '#FFFDE7',
-      elevation: 5,
-      shadowColor: 'rgba(0, 0, 0, 0.5)',
-      shadowOffset: { width: 1, height: 1 },
-      shadowOpacity: 0.5,
-      shadowRadius: 2,
-    },
-    background: {
-      flex: 1,
-      position: 'absolute',
-      width: '100%',
-      height: '100%',
-    },
-  });
 
 export default EditNoteScreen;
