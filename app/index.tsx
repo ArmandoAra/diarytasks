@@ -12,15 +12,17 @@ import { GlobalProvider } from '@/context/GlobalProvider';
 import { ThemeProvider, useThemeContext } from '@/context/ThemeProvider';
 import { Colors } from '@/constants/Colors';
 
-import Home from './screens/Home/index';
-import CreateNoteTab from './(tabs)/Notes/notes';
+import TimelineTab from './(tabs)/Timeline/timeline';
+import GalleryTab from './(tabs)/Gallery/gallery';
 import FavoritesTab from './(tabs)/Favorites/favorites';
 import MapTab from './(tabs)/Map/map';
 
 
 import SettingsScreen from './screens/settings/settings';
 import { StatesProvider } from '@/context/StatesProvider';
+import { AppBootstrap } from '@/context/AppBootstrap';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -50,25 +52,39 @@ const HomeTabs = () => {
             }}
         >
             <Tab.Screen
-                name="HomeTab"
-                component={Home}
+                name="Timeline"
+                component={TimelineTab}
                 options={{
-                    tabBarLabel: "Home",
+                    tabBarLabel: "Today",
                     tabBarLabelStyle: { fontFamily: "Kavivanar" },
-                    tabBarIcon: ({ color }) => <FontAwesome size={30} name="home" color={color} />,
+                    tabBarIcon: ({ color }) => <FontAwesome size={28} name="home" color={color} />,
                     tabBarActiveTintColor: theme == 'light' ? Colors.light.background : Colors.text.textLight,
                     tabBarInactiveTintColor: theme == "light" ? Colors.text.textDark : Colors.dark.secondary2,
                     headerShown: false,
                 }}
             />
             <Tab.Screen
-                name="Notes"
-                component={CreateNoteTab}
+                name="Map"
+                component={MapTab}
                 options={{
-                    tabBarLabel: "Day Notes",
+                    tabBarLabel: "Calendar",
                     tabBarLabelStyle: { fontFamily: "Kavivanar" },
                     headerShown: false,
-                    tabBarIcon: ({ color }) => <MaterialIcons name="note-add" size={28} color={color} />,
+                    tabBarIcon: ({ color }) => (
+                        <MaterialCommunityIcons name="calendar-month" size={30} color={color} />
+                    ),
+                    tabBarActiveTintColor: theme == 'light' ? Colors.light.background : Colors.text.textLight,
+                    tabBarInactiveTintColor: theme == "light" ? Colors.text.textDark : Colors.dark.secondary2,
+                }}
+            />
+            <Tab.Screen
+                name="Gallery"
+                component={GalleryTab}
+                options={{
+                    tabBarLabel: "Gallery",
+                    tabBarLabelStyle: { fontFamily: "Kavivanar" },
+                    headerShown: false,
+                    tabBarIcon: ({ color }) => <MaterialIcons name="photo-library" size={27} color={color} />,
                     tabBarActiveTintColor: theme == 'light' ? Colors.light.background : Colors.text.textLight,
                     tabBarInactiveTintColor: theme == "light" ? Colors.text.textDark : Colors.dark.secondary2,
                 }}
@@ -80,26 +96,11 @@ const HomeTabs = () => {
                     tabBarLabel: "Favorites",
                     tabBarLabelStyle: { fontFamily: "Kavivanar" },
                     headerShown: false,
-                    tabBarIcon: ({ color }) => <Fontisto name="star" size={25} color={color} />,
+                    tabBarIcon: ({ color }) => <Fontisto name="star" size={24} color={color} />,
                     tabBarActiveTintColor: theme == 'light' ? Colors.light.background : Colors.text.textLight,
                     tabBarInactiveTintColor: theme == "light" ? Colors.text.textDark : Colors.dark.secondary2,
                 }}
             />
-            <Tab.Screen
-                name="Map"
-                component={MapTab}
-                options={{
-                    tabBarLabel: "Map",
-                    tabBarLabelStyle: { fontFamily: "Kavivanar" },
-                    headerShown: false,
-                    tabBarIcon: ({ color }) => (
-                        <MaterialCommunityIcons name="calendar-month" size={30} color={color} />
-                    ),
-                    tabBarActiveTintColor: theme == 'light' ? Colors.light.background : Colors.text.textLight,
-                    tabBarInactiveTintColor: theme == "light" ? Colors.text.textDark : Colors.dark.secondary2,
-                }}
-            />
-
         </Tab.Navigator>
 
     );
@@ -131,17 +132,21 @@ export default function App() {
 
 
     return (
+        <GestureHandlerRootView style={{ flex: 1 }}>
         <SafeAreaProvider>
             <SQLiteProvider databaseName='diaryTasks.db'>
                 <ThemeProvider>
                     <GlobalProvider>
                         <StatesProvider>
-                            <AppNavigator />
+                            <AppBootstrap>
+                                <AppNavigator />
+                            </AppBootstrap>
                         </StatesProvider>
                     </GlobalProvider>
                 </ThemeProvider>
             </SQLiteProvider>
         </SafeAreaProvider>
+        </GestureHandlerRootView>
     );
 };
 

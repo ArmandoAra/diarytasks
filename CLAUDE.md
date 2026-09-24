@@ -33,12 +33,15 @@ Alias de imports: **`@/*` → raíz del repo** (definido en `tsconfig.json`).
 
 ```
 app/index.tsx  ← entry de expo-router; monta providers + navegadores
-  └─ SQLiteProvider
-     └─ ThemeProvider        (claro/oscuro, persistido en AsyncStorage)
-        └─ GlobalProvider    (datos del dominio: user, day, tasks, dayNotes)
-           └─ StatesProvider (flags de UI: modales abiertos, loading)
-              └─ Stack: [ Home(Tabs), Settings ]
-                         └─ Tabs: HomeTab | Notes | Favorites | Map
+  └─ GestureHandlerRootView   (necesario para el swipe entre días)
+     └─ SafeAreaProvider
+        └─ SQLiteProvider
+           └─ ThemeProvider     (claro/oscuro, persistido en AsyncStorage)
+              └─ GlobalProvider (datos del dominio: user, day, tasks, dayNotes)
+                 └─ StatesProvider (flags de UI: modales abiertos, loading)
+                    └─ AppBootstrap  ← abre la BD y carga el usuario
+                       └─ Stack: [ Home(Tabs), Settings ]
+                                  └─ Tabs: Timeline | Map | Gallery | Favorites
 
   containers/  → bloques con lógica y estado propio
   components/  → piezas de presentación reutilizables
@@ -74,7 +77,8 @@ Siempre pasa por `db/*`, que devuelve un `DbResult` y **nunca lanza excepciones*
 | `noteDb.ts` | CRUD de notas + `updateFavorite`, `getFavoritesNotes`. |
 | `userDb.ts` | Usuario local único. `getUser()` devuelve `{id, name}` tipado. |
 | `mapDb.ts` | Agrega tareas y notas por día para la pestaña Map (`getSortedDaysWithNotesAndTasks`). |
-| `mediaDb.ts` | Adjuntos de notas: `getMediaForNote(s)`, `addMedia`, `deleteMedia`, `deleteMediaForNote`. |
+| `mediaDb.ts` | Adjuntos: `getMediaForNote(s)`, `addMedia`, `deleteMedia`, `deleteMediaForNote`, `getDayCovers` (calendario), `getGalleryMedia`, `getOnThisDay`. |
+| `timelineDb.ts` | `getDayEntries(date)`: tareas + notas de un día mezcladas y ordenadas por `createdAt`. |
 
 ### `context/` — estado global
 
@@ -83,27 +87,28 @@ Siempre pasa por `db/*`, que devuelve un `DbResult` y **nunca lanza excepciones*
 | `GlobalProvider.tsx` | `user`, `day`, `tasks`, `dayNotes` + setters. **Datos del dominio.** |
 | `StatesProvider.tsx` | `loading`, `dbLoaded`, `settingsOpen`, `createTaskOpen`, `createNoteOpen`, `editTaskOpen`, `editNoteOpen`, `deletingOpen`. **Solo flags de UI.** |
 | `ThemeProvider.tsx` | `theme: 'light' \| 'dark'` y `setTheme` (persiste solo en AsyncStorage). |
+| `AppBootstrap.tsx` | Abre la BD, aplica migraciones, carga el usuario y maneja el botón atrás. **Va por encima del navegador**: antes esto vivía dentro de Home y solo corría porque era la primera pestaña. |
 
 ### `app/` — pantallas
 
 | Archivo | Rol |
 |---|---|
 | `index.tsx` | Entry point: fuentes, splash, providers, Stack y Tabs. |
-| `screens/Home/index.tsx` | Arranca la BD, carga el usuario, hace fetch del día, maneja el botón atrás de Android. |
-| `screens/settings/settings.tsx` | Nombre de usuario y selector de tema. |
-| `(tabs)/Notes/notes.tsx` | Grilla de notas del día (2 columnas). |
+| `(tabs)/Timeline/timeline.tsx` | **Pantalla principal.** El día como una sola línea de tiempo: tareas y notas mezcladas por hora. Swipe entre días, captura rápida con cámara, salto a fecha. |
+| `(tabs)/Map/map.tsx` | Calendario por año → mes → día, con **miniatura de foto** en los días que la tienen. |
+| `(tabs)/Gallery/gallery.tsx` | Rejilla de medios por mes, filtros y «hace un año». |
 | `(tabs)/Favorites/favorites.tsx` | Notas marcadas como favoritas (todas las fechas). |
-| `(tabs)/Map/map.tsx` | Calendario agrupado por año → mes → día; navega al día elegido. |
+| `screens/settings/settings.tsx` | Nombre de usuario y selector de tema. |
 
 > El directorio `(tabs)` es una convención de nombre heredada: **la navegación NO usa el file-based routing de expo-router**, se declara a mano en `app/index.tsx`.
 
 ### `containers/` — bloques con lógica
 
-`tasksContainer/tasks.tsx` (lista + filtro Todo/Completed/All) · `createTask/createTask.tsx` · `editTask/editTask.tsx` · `editNote/createNote.tsx` · `editNote/editNote.tsx` · `dayChanger/dayChangerContainer.tsx` (anterior / hoy / siguiente + date picker).
+`createTask/createTask.tsx` · `editTask/editTask.tsx` · `editNote/createNote.tsx` (el compositor; lo monta el timeline) · `editNote/editNote.tsx`.
 
 ### `components/` — presentación
 
-`task/task.tsx` (doble tap para completar) · `note/note.tsx` · `header/header.tsx` · `favoriteToggle/favToggle.tsx` · `delete/deletingPopUp.tsx` · `loader/loader.tsx` · `linedPaper/linedPaper.tsx` (papel rayado, **un solo SVG con `<Pattern>`** — no vuelvas a renderizar una línea por nodo) · `emptyState/emptyState.tsx`.
+`timeline/timelineEntry.tsx` (una fila del día: tarea o nota) · `media/mediaStrip.tsx` (adjuntar) · `media/mediaPreview.tsx` (portada) · `media/mediaViewer.tsx` (pantalla completa) · `favoriteToggle/favToggle.tsx` · `delete/deletingPopUp.tsx` · `loader/loader.tsx` · `linedPaper/linedPaper.tsx` (papel rayado, **un solo SVG con `<Pattern>`** — no vuelvas a renderizar una línea por nodo) · `emptyState/emptyState.tsx`.
 
 ### `Utils/`, `interfaces/`, `constants/`
 
@@ -175,6 +180,10 @@ TaskTemplate (id, userId→User, title, description, ...)   -- sin usar todavía
      ocupando espacio para siempre.
 9. Las tarjetas y el calendario pintan **`thumbPath`**, nunca `path`: decodificar
    el original en una miniatura agota la memoria.
+10. **El orden del timeline sale de `createdAt`**, que SQLite guarda en UTC. La hora
+    se convierte con `strftime('%H:%M', createdAt, 'localtime')` en SQL, no en JS.
+11. El swipe entre días necesita `GestureHandlerRootView` en `app/index.tsx`.
+    Si lo quitas, el gesto deja de responder sin dar ningún error.
 
 ---
 
@@ -187,4 +196,6 @@ TaskTemplate (id, userId→User, title, description, ...)   -- sin usar todavía
 | Cambiar colores o tema | `constants/Colors.ts` y el `createStyles` del componente |
 | Tocar lógica de fechas | `Utils/helpFunctions.ts` (+ tests en `Utils/__tests__/`) |
 | Añadir una pestaña | `app/index.tsx` y `interfaces/types.ts` |
+| Cambiar qué se ve en el día | `db/timelineDb.ts` + `components/timeline/timelineEntry.tsx` |
+| Tocar la galería o «hace un año» | `db/mediaDb.ts` + `app/(tabs)/Gallery/gallery.tsx` |
 | Cambiar qué se ve en el calendario | `db/mapDb.ts` + `app/(tabs)/Map/map.tsx` |

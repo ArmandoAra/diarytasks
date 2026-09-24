@@ -18,6 +18,9 @@ import { useStatesContext } from '@/context/StatesProvider';
 import { useThemeContext } from '@/context/ThemeProvider';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import EmptyState from '@/components/emptyState/emptyState';
+import { Image } from 'expo-image';
+import { getDayCovers } from '@/db/mediaDb';
+import { toAbsoluteUri } from '@/Utils/mediaStorage';
 
 interface SortedDataProps {
     date: string;
@@ -37,13 +40,18 @@ const MapTab = () => {
     const insets = useSafeAreaInsets();
 
     const [daysWithData, setDaysWithData] = useState<SortedDataProps[]>([]);
+    const [covers, setCovers] = useState<Record<string, string>>({});
 
     useFocusEffect(
         useCallback(() => {
             const fetchAllDaysWithData = async () => {
                 setLoading(true);
                 try {
-                    const result = await getSortedDaysWithNotesAndTasks();
+                    const [result, dayCovers] = await Promise.all([
+                        getSortedDaysWithNotesAndTasks(),
+                        getDayCovers(),
+                    ]);
+                    setCovers(dayCovers.data ?? {});
                     if (Array.isArray(result)) {
                         setDaysWithData(result);
                     } else {
@@ -102,11 +110,20 @@ const MapTab = () => {
                                                 key={date}
                                                 style={styles.dayButton}
                                                 onPress={() => handleNavigate(date, haveTask)}
+                                                accessibilityLabel={`Open ${date}`}
                                             >
-                                                {haveNote && <FontAwesome name="sticky-note" size={14} color={Colors.light.ternary2}
-                                                    style={{ position: "absolute", bottom: 0, right: 0 }} />}
-                                                {allTasksCompleted && <Feather name="check-circle" size={16} color="green" style={{ position: "absolute", top: 0, left: 0 }} />}
-                                                <Text style={styles.dayText}>{String(day)}</Text>
+                                                {covers[date] ? (
+                                                    <Image
+                                                        source={{ uri: toAbsoluteUri(covers[date]) }}
+                                                        style={styles.dayCover}
+                                                        contentFit="cover"
+                                                        transition={100}
+                                                    />
+                                                ) : null}
+                                                {haveNote && !covers[date] && <FontAwesome name="sticky-note" size={14} color={Colors.light.ternary2}
+                                                    style={{ position: "absolute", bottom: 2, right: 2 }} />}
+                                                {allTasksCompleted && <Feather name="check-circle" size={16} color="green" style={{ position: "absolute", top: 2, left: 2 }} />}
+                                                <Text style={[styles.dayText, covers[date] ? styles.dayTextOnCover : null]}>{String(day)}</Text>
                                             </TouchableOpacity>
                                         ))}
                                 </View>
@@ -193,6 +210,17 @@ const createStyles = (theme: 'light' | 'dark') =>
             elevation: 5,
             justifyContent: 'center',
             alignItems: 'center',
+        },
+        dayCover: {
+            ...StyleSheet.absoluteFillObject,
+            borderRadius: 16,
+        },
+        dayTextOnCover: {
+            color: "#FFFFFF",
+            // The cover can be any colour, so the number needs its own contrast.
+            textShadowColor: "rgba(0,0,0,0.85)",
+            textShadowRadius: 4,
+            textShadowOffset: { width: 0, height: 1 },
         },
         dayText: {
             fontSize: 22,

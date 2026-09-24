@@ -9,7 +9,6 @@ import {
 } from 'react-native';
 
 import { findNoteById } from '@/Utils/helpFunctions';
-import { en, registerTranslation } from 'react-native-paper-dates';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { getNotesByDate, updateNoteById } from '@/db/noteDb';
 import { addMedia, deleteMedia, getMediaForNote } from '@/db/mediaDb';
@@ -22,7 +21,6 @@ import LinedPaper from '@/components/linedPaper/linedPaper';
 import { useStatesContext } from '@/context/StatesProvider';
 import { useThemeContext } from '@/context/ThemeProvider';
 
-registerTranslation('en', en);
 
 interface EditNoteScreenProps { }
 

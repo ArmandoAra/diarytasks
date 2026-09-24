@@ -143,3 +143,109 @@ export async function getAllMedia(limit = 200, offset = 0): Promise<DbResult<Not
         ),
     );
 }
+
+/** An attachment plus the date of the note it belongs to. */
+export interface DatedMedia extends NoteMedia {
+    date: string;
+}
+
+/**
+ * One cover thumbnail per day, for the calendar.
+ *
+ * MIN(m.id) picks the first attachment of the day deterministically, so the
+ * calendar does not change cover between renders.
+ */
+export async function getDayCovers(): Promise<DbResult<Record<string, string>>> {
+    const result = await runQuery('get day covers', (db) =>
+        db.getAllAsync<{ date: string; thumbPath: string | null; path: string }>(
+            `SELECT n.date AS date, m.thumbPath AS thumbPath, m.path AS path
+               FROM NoteMedia m
+               JOIN Note n ON n.id = m.noteId
+              WHERE m.id IN (
+                    SELECT MIN(m2.id) FROM NoteMedia m2
+                      JOIN Note n2 ON n2.id = m2.noteId
+                     WHERE n2.date IS NOT NULL AND n2.date <> ''
+                     GROUP BY n2.date
+              )`,
+        ),
+    );
+
+    if (!result.success || !result.data) return { ...result, data: {} };
+
+    const covers: Record<string, string> = {};
+    for (const row of result.data) {
+        covers[row.date] = row.thumbPath ?? row.path;
+    }
+
+    return { success: true, data: covers };
+}
+
+/** Every attachment with its note's date, newest first - the gallery grid. */
+export async function getGalleryMedia(limit = 300, offset = 0): Promise<DbResult<DatedMedia[]>> {
+    return runQuery('get gallery media', (db) =>
+        db.getAllAsync<DatedMedia>(
+            `SELECT m.id, m.noteId, m.kind, m.path, m.thumbPath, m.width, m.height,
+                    m.durationMs, m.orderIndex, n.date AS date
+               FROM NoteMedia m
+               JOIN Note n ON n.id = m.noteId
+              ORDER BY n.date DESC, m.id DESC
+              LIMIT ? OFFSET ?`,
+            [limit, offset],
+        ),
+    );
+}
+
+/** Attachments of favourite notes only. */
+export async function getFavouriteMedia(): Promise<DbResult<DatedMedia[]>> {
+    return runQuery('get favourite media', (db) =>
+        db.getAllAsync<DatedMedia>(
+            `SELECT m.id, m.noteId, m.kind, m.path, m.thumbPath, m.width, m.height,
+                    m.durationMs, m.orderIndex, n.date AS date
+               FROM NoteMedia m
+               JOIN Note n ON n.id = m.noteId
+              WHERE n.isFavorite = 1
+              ORDER BY n.date DESC, m.id DESC`,
+        ),
+    );
+}
+
+export interface Memory {
+    date: string;
+    yearsAgo: number;
+    noteCount: number;
+    cover: string | null;
+}
+
+/**
+ * Entries from the same day in previous years.
+ *
+ * This is only expressible in SQL because dates are ISO: strftime can pull the
+ * month and day out of the stored string.
+ */
+export async function getOnThisDay(today: string): Promise<DbResult<Memory[]>> {
+    const result = await runQuery('get memories', (db) =>
+        db.getAllAsync<{ date: string; noteCount: number; cover: string | null }>(
+            `SELECT n.date AS date,
+                    COUNT(DISTINCT n.id) AS noteCount,
+                    MIN(COALESCE(m.thumbPath, m.path)) AS cover
+               FROM Note n
+               LEFT JOIN NoteMedia m ON m.noteId = n.id
+              WHERE strftime('%m-%d', n.date) = strftime('%m-%d', ?)
+                AND n.date < ?
+              GROUP BY n.date
+              ORDER BY n.date DESC`,
+            [today, today],
+        ),
+    );
+
+    if (!result.success || !result.data) return { ...result, data: [] };
+
+    const thisYear = Number(today.slice(0, 4));
+    return {
+        success: true,
+        data: result.data.map((row) => ({
+            ...row,
+            yearsAgo: thisYear - Number(row.date.slice(0, 4)),
+        })),
+    };
+}

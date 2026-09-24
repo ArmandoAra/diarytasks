@@ -14,7 +14,6 @@ import { Picker } from '@react-native-picker/picker';
 import { findTaskById } from '@/Utils/helpFunctions';
 
 // Date Picker
-import { en, registerTranslation } from 'react-native-paper-dates'
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { CreateTaskProps } from '@/interfaces/TasksInterfaces';
 import { getTasksByDate, updateTaskById } from '@/db/taskDb';
@@ -22,7 +21,6 @@ import { AntDesign, FontAwesome } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { useStatesContext } from '@/context/StatesProvider';
 import { useThemeContext } from '@/context/ThemeProvider';
-registerTranslation('en', en)
 
 const EditTaskScreen = () => {
   const { theme } = useThemeContext();

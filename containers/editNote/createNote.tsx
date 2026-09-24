@@ -7,7 +7,6 @@ import {
     Alert,
 } from 'react-native';
 
-import { en, registerTranslation } from 'react-native-paper-dates';
 import { useGlobalContext } from '@/context/GlobalProvider';
 import { createNote, getNotesByDate } from '@/db/noteDb';
 import { addMedia } from '@/db/mediaDb';
@@ -20,7 +19,6 @@ import LinedPaper from '@/components/linedPaper/linedPaper';
 import { useStatesContext } from '@/context/StatesProvider';
 import { useThemeContext } from '@/context/ThemeProvider';
 
-registerTranslation('en', en);
 
 interface CreateNotePropsInterface { }
 
